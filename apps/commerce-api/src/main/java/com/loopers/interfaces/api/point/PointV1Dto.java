@@ -14,4 +14,11 @@ public class PointV1Dto {
             );
         }
     }
+
+    public record ChargeRequest(
+        String loginId,
+        Long amount
+    ){
+
+    }
 }

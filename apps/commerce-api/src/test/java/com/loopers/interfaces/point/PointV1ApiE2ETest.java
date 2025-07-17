@@ -12,6 +12,7 @@ import com.loopers.domain.user.UserModel;
 import com.loopers.domain.user.UserService;
 import com.loopers.domain.user.dto.UserCommand;
 import com.loopers.interfaces.api.ApiResponse;
+import com.loopers.interfaces.api.point.PointV1Dto;
 import com.loopers.interfaces.api.point.PointV1Dto.PointResponse;
 import com.loopers.interfaces.api.user.UserV1Dto;
 import com.loopers.interfaces.api.user.UserV1Dto.SignUpResponse;
@@ -107,5 +108,72 @@ public class PointV1ApiE2ETest {
                 () -> assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST)
             );
         }
+    }
+
+    @DisplayName("POST /api/v1/points")
+    @Nested
+    class ChargePoint {
+
+        @DisplayName("존재하는 유저가 1000원을 충전할 경우, 충전된 보유 총량을 응답으로 반환한다.")
+        @Test
+        void givenExistUser_whenChargePoint_thenReturnChargedPoint(){
+            // given
+            String requestUrl = ENDPOINT.apply("");
+            // given
+            LoginInfo loginInfo = new LoginInfo("test");
+            Long point = 1000L;
+
+            Email email = new Email("test@gmail.com");
+            Gender male = Gender.MALE;
+            BirthDate birthDate = new BirthDate("1997-02-27");
+            UserCommand.Create user = new UserCommand.Create(
+                loginInfo,
+                email,
+                male,
+                birthDate
+            );
+            userService.signUp(user);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("X-USER-ID", loginInfo.getLoginId());
+            PointV1Dto.ChargeRequest request = new PointV1Dto.ChargeRequest(loginInfo.getLoginId(), point);
+            ParameterizedTypeReference<ApiResponse<PointV1Dto.ChargeRequest>> responseType = new ParameterizedTypeReference<>() {
+            };
+
+            // when
+            ResponseEntity<ApiResponse<PointV1Dto.ChargeRequest>> response =
+                testRestTemplate.exchange(requestUrl, HttpMethod.POST, new HttpEntity<>(request, headers), responseType);
+
+            // then
+            assertAll(
+                () -> assertTrue(response.getStatusCode().is2xxSuccessful()),
+                () -> assertThat(response.getBody().data().amount()).isEqualTo(point)
+            );
+
+        }
+
+        @DisplayName("존재하지 않는 유저로 요청할 경우, 404 Not Found 응답을 반환한다.")
+        @Test
+        void givenNotExistUser_whenChargePoint_thenReturnNotFoundError() {
+            // given
+            String requestUrl = ENDPOINT.apply("");
+            LoginInfo loginInfo = new LoginInfo("test");
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("X-USER-ID", loginInfo.getLoginId());
+            PointV1Dto.ChargeRequest request = new PointV1Dto.ChargeRequest(loginInfo.getLoginId(), 1000L);
+            ParameterizedTypeReference<ApiResponse<PointV1Dto.ChargeRequest>> responseType = new ParameterizedTypeReference<>() {
+            };
+
+            // when
+            ResponseEntity<ApiResponse<PointV1Dto.ChargeRequest>> response =
+                testRestTemplate.exchange(requestUrl, HttpMethod.POST, new HttpEntity<>(request, headers), responseType);
+
+            // then
+            assertAll(
+                () -> assertTrue(response.getStatusCode().is4xxClientError()),
+                () -> assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND)
+            );
+        }
+
     }
 }
