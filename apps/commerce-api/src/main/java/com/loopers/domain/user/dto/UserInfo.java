@@ -9,14 +9,15 @@ import com.loopers.domain.user.UserModel;
 public record UserInfo(LoginInfo loginInfo,
                        Email email,
                        Gender gender,
-                       BirthDate birthDate) {
-
+                       BirthDate birthDate,
+                       Long point) {
     public static UserInfo from(UserModel user) {
         return new UserInfo(
             user.getLoginInfo(),
             user.getEmail(),
             user.getGender(),
-            user.getBirthDate()
+            user.getBirthDate(),
+            user.getPoint().getPoint()
         );
     }
 }
