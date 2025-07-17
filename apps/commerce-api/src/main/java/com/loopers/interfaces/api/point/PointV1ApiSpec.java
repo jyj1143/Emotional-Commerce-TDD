@@ -13,4 +13,13 @@ public interface PointV1ApiSpec {
     ApiResponse<PointV1Dto.PointResponse> getMyPoint(
         String loginId
     );
+
+    @Operation(
+        summary = "포인트 충전",
+        description = "포인트를 충전합니다."
+    )
+    ApiResponse<PointV1Dto.PointResponse> chargePoint(
+        String loginId,
+        PointV1Dto.ChargeRequest pointResponse
+    );
 }
