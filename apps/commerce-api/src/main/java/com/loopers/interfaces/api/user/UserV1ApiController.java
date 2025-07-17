@@ -6,10 +6,13 @@ import com.loopers.domain.user.dto.UserInfo;
 import com.loopers.interfaces.api.ApiResponse;
 import com.loopers.interfaces.api.user.UserV1Dto.SignUpRequest;
 import com.loopers.interfaces.api.user.UserV1Dto.SignUpResponse;
+import com.loopers.interfaces.api.user.UserV1Dto.UserResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -30,5 +33,15 @@ public class UserV1ApiController implements UserV1ApiSpec {
 
         SignUpResponse signUpResponse = SignUpResponse.from(userInfo);
         return ApiResponse.success(signUpResponse);
+    }
+
+    @GetMapping("/me")
+    @Override
+    public ApiResponse<UserResponse> getMyInfo(
+        @RequestHeader("X-USER-ID") String loginId
+    ) {
+        UserInfo userInfo = userFacade.getMyInfo(loginId);
+        UserResponse userResponse = UserResponse.from(userInfo);
+        return ApiResponse.success(userResponse);
     }
 }

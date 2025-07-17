@@ -47,4 +47,20 @@ public class UserV1Dto {
             );
         }
     }
+
+    public record UserResponse(
+        String loginId,
+        String gender,
+        String birthDate,
+        String email
+    ){
+        public static UserResponse from(UserInfo userInfo) {
+            return new UserResponse(
+                userInfo.loginInfo().getLoginId(),
+                userInfo.gender().name(),
+                userInfo.birthDate().getBirthDate().toString(),
+                userInfo.email().getEmail()
+            );
+        }
+    }
 }

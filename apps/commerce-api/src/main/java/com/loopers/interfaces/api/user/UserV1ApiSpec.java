@@ -15,4 +15,12 @@ public interface UserV1ApiSpec {
         @Schema(name = "회원가입 입력 요청", description = "회원가입 입력 정보")
         UserV1Dto.SignUpRequest signUpRequest
     );
+
+    @Operation(
+        summary = "내 정보 조회",
+        description = "내 정보를 조회합니다."
+    )
+    ApiResponse<UserV1Dto.UserResponse> getMyInfo(
+        String loginId
+    );
 }

@@ -25,4 +25,8 @@ public class UserService {
             .build();
         return userRepository.save(user);
     }
+
+    public UserModel getUser(LoginInfo loginInfo) {
+        return userRepository.findByLoginInfo(loginInfo).orElse(null);
+    }
 }

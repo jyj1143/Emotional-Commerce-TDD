@@ -21,4 +21,9 @@ public class UserRepositoryImpl implements UserRepository {
     public UserModel save(UserModel user) {
         return userJpaRepository.save(user);
     }
+
+    @Override
+    public Optional<UserModel> findByLoginInfo(LoginInfo loginInfo) {
+        return userJpaRepository.findByLoginInfo_LoginId(loginInfo.getLoginId());
+    }
 }

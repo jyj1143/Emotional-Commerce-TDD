@@ -1,5 +1,6 @@
 package com.loopers.domain.user;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
@@ -81,6 +82,55 @@ public class UserServiceIntegrationTest {
                 ))
             );
             assertThat(exception.getErrorType()).isEqualTo(ErrorType.BAD_REQUEST);
+        }
+    }
+
+    @DisplayName("내 정보 조회 시,")
+    @Nested
+    class GetMyInfo {
+
+        @DisplayName("해당 ID 의 회원이 존재할 경우, 회원 정보가 반환된다.")
+        @Test
+        void whenExistUser_thenReturnUserInfo() {
+            // given
+            LoginInfo loginInfo = new LoginInfo("test");
+            Email email = new Email("test@gmail.com");
+            Gender male = Gender.MALE;
+            BirthDate birthDate = new BirthDate("1997-02-27");
+            UserCommand.Create user = new UserCommand.Create(
+                loginInfo,
+                email,
+                male,
+                birthDate
+            );
+            userService.signUp(user);
+
+            // when
+            UserModel userModel = userService.getUser(loginInfo);
+
+            // then
+            assertAll(
+                () -> assertThat(userModel).isNotNull(),
+                () -> assertThat(userModel.getLoginInfo().getLoginId()).isEqualTo(loginInfo.getLoginId()),
+                () -> assertThat(userModel.getEmail().getEmail()).isEqualTo(email.getEmail()),
+                () -> assertThat(userModel.getGender()).isEqualTo(male),
+                () -> assertThat(userModel.getBirthDate().getBirthDate()).isEqualTo(birthDate.getBirthDate())
+            );
+        }
+
+        @DisplayName("해당 ID 의 회원이 존재하지 않을 경우, null 이 반환된다.")
+        @Test
+        void whenNotExistUser_thenReturnUserInfo() {
+            // given
+            LoginInfo loginInfo = new LoginInfo("test");
+
+            // when
+            UserModel userModel = userService.getUser(loginInfo);
+
+            // then
+            assertAll(
+                () -> assertThat(userModel).isNull()
+            );
         }
     }
 }
