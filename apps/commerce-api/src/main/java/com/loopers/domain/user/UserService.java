@@ -29,4 +29,10 @@ public class UserService {
     public UserModel getUser(LoginInfo loginInfo) {
         return userRepository.findByLoginInfo(loginInfo).orElse(null);
     }
+
+    @Transactional
+    public void addPoint(LoginInfo loginInfo, Long point) {
+        UserModel user = getUser(loginInfo);
+        user.addPoint(point);
+    }
 }

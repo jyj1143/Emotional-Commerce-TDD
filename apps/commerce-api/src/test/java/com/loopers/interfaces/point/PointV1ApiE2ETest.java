@@ -4,11 +4,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.loopers.domain.user.BirthDate;
+import com.loopers.domain.user.Email;
+import com.loopers.domain.user.Gender;
+import com.loopers.domain.user.LoginInfo;
+import com.loopers.domain.user.UserModel;
+import com.loopers.domain.user.UserService;
+import com.loopers.domain.user.dto.UserCommand;
 import com.loopers.interfaces.api.ApiResponse;
 import com.loopers.interfaces.api.point.PointV1Dto.PointResponse;
 import com.loopers.interfaces.api.user.UserV1Dto;
 import com.loopers.interfaces.api.user.UserV1Dto.SignUpResponse;
 import com.loopers.utils.DatabaseCleanUp;
+import jakarta.persistence.EntityManager;
 import java.util.function.Function;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -32,6 +40,8 @@ public class PointV1ApiE2ETest {
     private TestRestTemplate testRestTemplate;
     @Autowired
     private DatabaseCleanUp databaseCleanUp;
+    @Autowired
+    private UserService userService;
 
     @AfterEach
     void tearDown() {
@@ -46,9 +56,22 @@ public class PointV1ApiE2ETest {
         @Test
         void whenRequestPointSuccess_thenReturnMyPoint() {
             // given
+            LoginInfo loginInfo = new LoginInfo("test");
+            Email email = new Email("test@gmail.com");
+            Gender male = Gender.MALE;
+            BirthDate birthDate = new BirthDate("1997-02-27");
+            UserCommand.Create user = new UserCommand.Create(
+                loginInfo,
+                email,
+                male,
+                birthDate
+            );
+            userService.signUp(user);
+            userService.addPoint(loginInfo, 1000L);
+
             String requestUrl = ENDPOINT.apply("");
             HttpHeaders headers = new HttpHeaders();
-            headers.set("X-USER-ID", "test");
+            headers.set("X-USER-ID", loginInfo.getLoginId());
             ParameterizedTypeReference<ApiResponse<PointResponse>> responseType = new ParameterizedTypeReference<>() {
             };
 
@@ -61,7 +84,7 @@ public class PointV1ApiE2ETest {
                 () -> assertTrue(response.getStatusCode().is2xxSuccessful()),
                 () -> assertThat(response.getBody()).isNotNull(),
                 () -> assertThat(response.getBody().data()).isNotNull(),
-                () -> assertThat(response.getBody().data().amount()).isEqualTo(1000)
+                () -> assertThat(response.getBody().data().amount()).isEqualTo(1000L)
             );
         }
 

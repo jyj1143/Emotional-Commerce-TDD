@@ -42,6 +42,12 @@ public class UserModel extends BaseEntity {
         this.birthDate = birthDate;
         this.point = point != null ? point : new Point(0L); // 기본 포인트는 0으로 설정
     }
+
+    public void addPoint(Long point) {
+        if (point == null || point < 0) {
+            throw new IllegalArgumentException("포인트는 null이거나 음수일 수 없습니다.");
+        }
+        this.point = new Point(this.point.getPoint() + point);
     }
 
 }
