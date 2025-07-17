@@ -2,6 +2,8 @@ package com.loopers.domain.point;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.loopers.domain.user.BirthDate;
 import com.loopers.domain.user.Email;
@@ -11,6 +13,8 @@ import com.loopers.domain.user.UserModel;
 import com.loopers.domain.user.UserRepository;
 import com.loopers.domain.user.UserService;
 import com.loopers.domain.user.dto.UserCommand;
+import com.loopers.support.error.CoreException;
+import com.loopers.support.error.ErrorType;
 import com.loopers.utils.DatabaseCleanUp;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -79,6 +83,27 @@ public class PointServiceIntegrationTest {
             // then
             assertAll(
                 () -> assertThat(user).isNull()
+            );
+        }
+    }
+
+    @DisplayName("포인트 충전 시,")
+    @Nested
+    class ChargePoint {
+        @DisplayName("존재하지 않는 유저 ID 로 충전을 시도한 경우, 실패한다.")
+        @Test
+        void whenChargePointWithNonExistentUser_thenFail() {
+            // given
+            LoginInfo loginInfo = new LoginInfo("test");
+            Long chargeAmount = 1000L;
+
+            // when
+            CoreException coreException = assertThrows(CoreException.class,
+                () -> userService.addPoint(loginInfo, chargeAmount));
+
+            // then
+            assertAll(
+                () -> assertEquals(ErrorType.NOT_FOUND, coreException.getErrorType())
             );
         }
     }

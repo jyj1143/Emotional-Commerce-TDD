@@ -81,4 +81,27 @@ public class UsersModelTest {
             });
         }
     }
+
+    @DisplayName("포인 충전 시, ")
+    @Nested
+    class PointCharge {
+
+        @DisplayName("포인트 충전 금액이 0 이하일 경우, User 객체 생성에 실패한다.")
+        @ParameterizedTest
+        @ValueSource(longs = {0L, -100L})
+        void givenInvalidPoint_whenChargePoint_thenFail(Long invalidPoint) {
+            // given
+            UserModel userModel = UserModel.builder()
+                .loginInfo(new LoginInfo("test"))
+                .email(new Email("test@example.com"))
+                .gender(Gender.MALE)
+                .birthDate(new BirthDate("1997-02-27"))
+                .build();
+            // when
+            // then
+            assertThrows(CoreException.class, () -> {
+                userModel.addPoint(invalidPoint);
+            });
+        }
+    }
 }

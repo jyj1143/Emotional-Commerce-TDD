@@ -119,10 +119,24 @@ public class PointV1ApiE2ETest {
         void givenExistUser_whenChargePoint_thenReturnChargedPoint(){
             // given
             String requestUrl = ENDPOINT.apply("");
-            LoginInfo loginInfo = new LoginInfo("user");
+            // given
+            LoginInfo loginInfo = new LoginInfo("test");
+            Long point = 1000L;
+
+            Email email = new Email("test@gmail.com");
+            Gender male = Gender.MALE;
+            BirthDate birthDate = new BirthDate("1997-02-27");
+            UserCommand.Create user = new UserCommand.Create(
+                loginInfo,
+                email,
+                male,
+                birthDate
+            );
+            userService.signUp(user);
+
             HttpHeaders headers = new HttpHeaders();
             headers.set("X-USER-ID", loginInfo.getLoginId());
-            PointV1Dto.ChargeRequest request = new PointV1Dto.ChargeRequest(loginInfo.getLoginId(), 1000L);
+            PointV1Dto.ChargeRequest request = new PointV1Dto.ChargeRequest(loginInfo.getLoginId(), point);
             ParameterizedTypeReference<ApiResponse<PointV1Dto.ChargeRequest>> responseType = new ParameterizedTypeReference<>() {
             };
 
@@ -133,7 +147,7 @@ public class PointV1ApiE2ETest {
             // then
             assertAll(
                 () -> assertTrue(response.getStatusCode().is2xxSuccessful()),
-                () -> assertThat(response.getBody().data().amount()).isEqualTo(1000L)
+                () -> assertThat(response.getBody().data().amount()).isEqualTo(point)
             );
 
         }

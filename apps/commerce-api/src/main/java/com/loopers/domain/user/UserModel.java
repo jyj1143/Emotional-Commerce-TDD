@@ -1,6 +1,8 @@
 package com.loopers.domain.user;
 
 import com.loopers.domain.BaseEntity;
+import com.loopers.support.error.CoreException;
+import com.loopers.support.error.ErrorType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -44,8 +46,11 @@ public class UserModel extends BaseEntity {
     }
 
     public void addPoint(Long point) {
-        if (point == null || point < 0) {
-            throw new IllegalArgumentException("포인트는 null이거나 음수일 수 없습니다.");
+        if (point == null) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "포인트는 null일 수 없습니다.");
+        }
+        if ( point <= 0) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "포인트는 0이하의 값을 충전할 수 없습니다.");
         }
         this.point = new Point(this.point.getPoint() + point);
     }

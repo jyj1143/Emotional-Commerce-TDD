@@ -32,11 +32,7 @@ public class PointV1ApiController implements PointV1ApiSpec {
     public ApiResponse<PointResponse> chargePoint(
         @RequestHeader("X-USER-ID") String loginId,
         @RequestBody PointV1Dto.ChargeRequest chargeRequest) {
-
-        if("test".equals(loginId)) {
-            throw new CoreException(ErrorType.NOT_FOUND, "존재하지 않는 회원입니다.");
-        }
-        PointResponse pointResponse = new PointResponse(loginId, chargeRequest.amount());
+        PointResponse pointResponse = pointFacade.chargePoint(chargeRequest);
         return ApiResponse.success(pointResponse);
     }
 }

@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class UserService {
+
     private final UserRepository userRepository;
 
     @Transactional
@@ -31,8 +32,12 @@ public class UserService {
     }
 
     @Transactional
-    public void addPoint(LoginInfo loginInfo, Long point) {
+    public UserModel addPoint(LoginInfo loginInfo, Long point) {
         UserModel user = getUser(loginInfo);
+        if (user == null) {
+            throw new CoreException(ErrorType.NOT_FOUND, "사용자를 찾을 수 없습니다.");
+        }
         user.addPoint(point);
+        return userRepository.save(user);
     }
 }
