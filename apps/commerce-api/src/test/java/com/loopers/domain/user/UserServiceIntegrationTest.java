@@ -1,6 +1,8 @@
 package com.loopers.domain.user;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
@@ -50,11 +52,16 @@ public class UserServiceIntegrationTest {
             );
 
             //  when
-            spyUserService.signUp(create);
+            UserModel savedUser = spyUserService.signUp(create);
 
             //  then
             verify(spyUsersRepository, times(1)).existByLoginInfo(any(LoginInfo.class));
             verify(spyUsersRepository, times(1)).save(any(UserModel.class));
+            assertAll(
+                () -> assertNotNull(savedUser),
+                () -> assertThat("test").isEqualTo(savedUser.getLoginInfo().loginId)
+            );
+
         }
 
 
