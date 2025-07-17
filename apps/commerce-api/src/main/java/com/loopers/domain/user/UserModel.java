@@ -31,12 +31,17 @@ public class UserModel extends BaseEntity {
     @Embedded
     private BirthDate birthDate;
 
+    @Embedded
+    private Point point = new Point(0L); // 기본 포인트는 0으로 설정
+
     @Builder
-    public UserModel(LoginInfo loginInfo, Gender gender, Email email, BirthDate birthDate){
+    public UserModel(LoginInfo loginInfo, Gender gender, Email email, BirthDate birthDate, Point point) {
         this.loginInfo = loginInfo;
         this.email = email;
         this.gender = gender;
         this.birthDate = birthDate;
+        this.point = point != null ? point : new Point(0L); // 기본 포인트는 0으로 설정
+    }
     }
 
 }
