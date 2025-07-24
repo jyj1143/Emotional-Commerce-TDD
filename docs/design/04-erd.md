@@ -2,6 +2,7 @@
 
 ```mermaid
 ---
+---
 config:
   theme: default
   layout: dagre
@@ -45,7 +46,7 @@ erDiagram
         TIMESTAMP deleted_at "삭제일시"
     }
     PRODUCT {
-        BIGINT product_id PK "상품 ID"
+        BIGINT id PK "상품 ID"
         VARCHAR name "상품명"
         BIGINT price "상품 가격"
         VARCHAR sales_status "판매 상태"
@@ -71,7 +72,7 @@ erDiagram
         TIMESTAMP deleted_at "삭제일시"
     }
     ORDER_PRODUCT {
-        BIGINT order_product_id PK "주문 상품 ID"
+        BIGINT id PK "주문 상품 ID"
         BIGINT ref_product_id FK "상품 ID"
         BIGINT ref_order_id FK "주문 ID"
         BIGINT price "판매가"
@@ -81,7 +82,7 @@ erDiagram
         TIMESTAMP deleted_at "삭제일시"
     }
     PAYMENT {
-        BIGINT payment_id PK "결제 ID"
+        BIGINT id PK "결제 ID"
         BIGINT ref_order_id FK "주문 ID"
         BIGINT amount "결제 금액"
         VARCHAR method "결제 수단"
