@@ -113,7 +113,6 @@ class Product {
   -LocalDateTime updatedAt
   -LocalDateTime deletedAt
   +isOnSale(): boolean
-  +changePrice(newPrice: Long): void
 }
 class SaleStatus {
   <<enumeration>>
