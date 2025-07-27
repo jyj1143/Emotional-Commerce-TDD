@@ -5,9 +5,13 @@ import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -111,6 +115,25 @@ public class ApiControllerAdvice {
     public ResponseEntity<ApiResponse<?>> handle(Throwable e) {
         log.error("Exception : {}", e.getMessage(), e);
         return failureResponse(ErrorType.INTERNAL_ERROR, null);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ApiResponse<?>> handleMethodArgumentNotValid(MethodArgumentNotValidException exception) {
+        List<String> validationErrors = exception.getBindingResult()
+            .getFieldErrors()
+            .stream()
+            .map(DefaultMessageSourceResolvable::getDefaultMessage)
+            .collect(Collectors.toList());
+        String validationErrorMessage = String.join(", ", validationErrors);
+        log.error("Validation error occurred: {}", validationErrorMessage, exception);
+        return failureResponse(ErrorType.BAD_REQUEST, validationErrorMessage);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ApiResponse<?>> handleBadRequest(MissingRequestHeaderException exception) {
+        String headerName = exception.getHeaderName();
+        String message = String.format("필수 헤더 '%s'가 누락되었습니다.", headerName);
+        return failureResponse(ErrorType.BAD_REQUEST, message);
     }
 
     private String extractMissingParameter(String message) {
