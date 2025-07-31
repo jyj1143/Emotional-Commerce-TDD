@@ -11,7 +11,7 @@ public interface InventoryRepository {
 
     Boolean isExists(Long productSkuId);
 
-    InventoryModel incrementStock(Long productSkuId, Long quantity);
+    int incrementStock(Long productSkuId, Long quantity);
 
-    InventoryModel decrementStock(Long productSkuId, Long quantity);
+    int decrementStock(Long productSkuId, Long quantity);
 }

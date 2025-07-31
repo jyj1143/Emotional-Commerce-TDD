@@ -28,12 +28,12 @@ public class InventoryRepositoryImpl implements InventoryRepository {
     }
 
     @Override
-    public InventoryModel incrementStock(Long productSkuId, Long quantity) {
+    public int incrementStock(Long productSkuId, Long quantity) {
         return inventoryJpaRepository.incrementStock(productSkuId, quantity);
     }
 
     @Override
-    public InventoryModel decrementStock(Long productSkuId, Long quantity) {
+    public int decrementStock(Long productSkuId, Long quantity) {
         return inventoryJpaRepository.decreaseStock(productSkuId, quantity);
     }
 

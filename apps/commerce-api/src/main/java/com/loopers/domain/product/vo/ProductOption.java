@@ -24,6 +24,7 @@ public class ProductOption {
     private ProductOption(String optionType, String optionValue) {
         checkLength(optionType, optionValue);
         this.optionType = optionType;
+        this.optionValue = optionValue;
     }
 
     public static ProductOption of(String optionType, String optionValue) {

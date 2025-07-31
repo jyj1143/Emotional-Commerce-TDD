@@ -13,19 +13,19 @@ public interface PointJpaRepository extends JpaRepository<PointModel, Long> {
     @Query("UPDATE PointModel p "
         + "SET p.amount.amount = p.amount.amount + :point "
         + "WHERE p.refUserId = :userId ")
-    PointModel updatePoint(Long userId, Long point);
+    int updatePoint(Long userId, Long point);
 
     @Modifying
     @Query("UPDATE PointModel p "
         + "SET p.amount.amount = p.amount.amount - :point "
         + "WHERE p.refUserId = :userId ")
-    PointModel decrease(Long userId, Long point);
+    int decrease(Long userId, Long point);
 
     @Modifying
     @Query("UPDATE PointModel p "
         + "SET p.amount.amount = p.amount.amount + :point "
         + "WHERE p.refUserId = :userId ")
-    PointModel increase(Long userId, Long point);
+    int increase(Long userId, Long point);
 
     boolean existsByRefUserId(Long userId);
 

@@ -29,16 +29,15 @@ public class PointService {
     }
 
     @Transactional
-    public PointInfo chargePoint(PointCommand.ChargePoint command) {
+    public void chargePoint(PointCommand.ChargePoint command) {
         PointModel pointModel = pointRepository.findByUserId(command.userId())
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "회원이 존재하지 않습니다."));
 
-        PointModel update = pointRepository.increase(command.userId(), command.point());
-        return PointInfo.from(update);
+       pointRepository.increase(command.userId(), command.point());
     }
 
     @Transactional
-    public PointInfo usePoint(PointCommand.UsePoint command) {
+    public void usePoint(PointCommand.UsePoint command) {
         PointModel pointModel = pointRepository.findByUserId(command.userId())
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "회원이 존재하지 않습니다."));
 
@@ -46,8 +45,7 @@ public class PointService {
             throw new CoreException(ErrorType.BAD_REQUEST, "포인트가 부족합니다.");
         }
 
-        PointModel update = pointRepository.decrease(command.userId(), command.point());
-        return PointInfo.from(update);
+        pointRepository.decrease(command.userId(), command.point());
     }
 
     public PointInfo getPoint(PointCommand.GetPoint command) {

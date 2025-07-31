@@ -16,11 +16,11 @@ public interface InventoryJpaRepository extends JpaRepository<InventoryModel, Lo
     @Query("UPDATE InventoryModel i "
         + "SET i.quantity.quantity = i.quantity.quantity + :quantity "
         + "WHERE i.refProductSkuId = :productSkuId ")
-    InventoryModel incrementStock(Long productSkuId, Long quantity);
+    int incrementStock(Long productSkuId, Long quantity);
 
     @Modifying
     @Query("UPDATE InventoryModel i "
         + "SET i.quantity.quantity = i.quantity.quantity - :quantity "
         + "WHERE i.refProductSkuId = :productSkuId ")
-    InventoryModel decreaseStock(Long productSkuId, Long quantity);
+    int decreaseStock(Long productSkuId, Long quantity);
 }

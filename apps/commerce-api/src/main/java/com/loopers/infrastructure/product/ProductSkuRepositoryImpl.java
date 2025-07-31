@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 @RequiredArgsConstructor
@@ -18,6 +19,7 @@ public class ProductSkuRepositoryImpl implements ProductSkuRepository {
         return productSkuJpaRepository.saveAll(skus);
     }
 
+    @Transactional
     @Override
     public ProductSkuModel save(ProductSkuModel sku) {
         return productSkuJpaRepository.save(sku);

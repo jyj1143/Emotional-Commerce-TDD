@@ -3,6 +3,8 @@ package com.loopers.domain.order;
 import com.loopers.domain.BaseEntity;
 import com.loopers.domain.common.vo.Money;
 import com.loopers.domain.common.vo.Quantity;
+import com.loopers.support.error.CoreException;
+import com.loopers.support.error.ErrorType;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
@@ -36,6 +38,10 @@ public class OrderItemModel extends BaseEntity {
     private OrderModel order;
 
     private OrderItemModel(Long quantity, Long purchasePrice,  Long refProductSkuId) {
+        if (refProductSkuId == null) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "유효하지 않은 상품SKU ID입니다.");
+        }
+
         this.quantity = Quantity.of(quantity);
         this.purchasePrice = Money.of(purchasePrice);
         this.refProductSkuId = refProductSkuId;

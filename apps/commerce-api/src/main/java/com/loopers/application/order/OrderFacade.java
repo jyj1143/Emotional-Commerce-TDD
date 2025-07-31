@@ -1,6 +1,7 @@
 package com.loopers.application.order;
 
 import com.loopers.application.order.dto.OrderCriteria;
+import com.loopers.application.order.dto.OrderResult;
 import com.loopers.domain.inventory.dto.InventoryCommand;
 import com.loopers.domain.inventory.service.InventoryService;
 import com.loopers.domain.order.OrderItemModel;
@@ -30,7 +31,7 @@ public class OrderFacade {
     private final ProductSkuService productSkuService;
 
     @Transactional
-    public void order(OrderCriteria.Order criteria) {
+    public OrderResult order(OrderCriteria.Order criteria) {
 
         // 상품 SKU 검증
         productSkuService.getSkus(new ProductSkuCommand.GetProSkus(criteria.items().stream()
@@ -59,6 +60,8 @@ public class OrderFacade {
             PaymentMethod.POINT,
             orderInfo.totalPrice()
         ));
+
+        return OrderResult.from(orderInfo);
     }
 
 

@@ -7,11 +7,11 @@ public interface PointRepository {
 
     PointModel save(PointModel pointModel);
 
-    PointModel update(Long userId, Long point);
+    int update(Long userId, Long point);
 
-    PointModel decrease(Long userId, Long point);
+    int decrease(Long userId, Long point);
 
-    PointModel increase(Long userId, Long point);
+    int increase(Long userId, Long point);
 
     Optional<PointModel> findByUserId(Long userId);
 
