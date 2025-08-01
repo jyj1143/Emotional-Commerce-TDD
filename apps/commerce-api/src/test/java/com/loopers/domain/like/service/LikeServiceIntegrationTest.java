@@ -1,11 +1,14 @@
 package com.loopers.domain.like.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 import com.loopers.domain.like.LikeModel;
 import com.loopers.domain.like.dto.LikeCommand;
 import com.loopers.domain.like.enums.LikeType;
 import com.loopers.domain.like.repository.LikeRepository;
+import com.loopers.utils.DatabaseCleanUp;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -19,6 +22,14 @@ public class LikeServiceIntegrationTest {
     LikeService sut;
     @Autowired
     LikeRepository likeRepository;
+    @Autowired
+    private DatabaseCleanUp databaseCleanUp;
+
+    @AfterEach
+    void tearDown() {
+        databaseCleanUp.truncateAllTables();
+    }
+
 
     @DisplayName("좋아요를 등록할 때, ")
     @Nested
@@ -27,10 +38,29 @@ public class LikeServiceIntegrationTest {
         @Test
         void when_userHasNotLikedTarget_then_registerLike() {
             LikeCommand.Like command=new LikeCommand.Like(1L, 1L, LikeType.PRODUCT);
-            boolean isExist = likeRepository.isExists(command.userId(), command.targetId(), command.likeType());
+            boolean beforeIsExist = likeRepository.isExists(command.userId(), command.targetId(), command.likeType());
             sut.like(command);
+            boolean afterIsExist = likeRepository.isExists(command.userId(), command.targetId(), command.likeType());
 
-            assertThat(isExist).isFalse();
+            assertAll(
+                    () -> assertThat(beforeIsExist).isFalse(),
+                    () -> assertThat(afterIsExist).isTrue()
+            );
+        }
+
+        @DisplayName("좋아요한 상태면, 아무일도 일어나지 않는다.")
+        @Test
+        void when_userHasLikedTarget_then_doNothing() {
+            LikeCommand.Like command = new LikeCommand.Like(1L, 1L, LikeType.PRODUCT);
+            LikeModel likeModel = LikeModel.of(command.userId(), command.targetId(), command.likeType());
+            likeRepository.save(likeModel);
+            boolean beforeIsExist = likeRepository.isExists(command.userId(), command.targetId(), command.likeType());
+            sut.like(command);
+            boolean afterIsExist = likeRepository.isExists(command.userId(), command.targetId(), command.likeType());
+            assertAll(
+                    () -> assertThat(beforeIsExist).isTrue(),
+                    () -> assertThat(afterIsExist).isTrue()
+            );
         }
     }
 
@@ -43,10 +73,28 @@ public class LikeServiceIntegrationTest {
             LikeCommand.Unlike command = new LikeCommand.Unlike(1L, 1L, LikeType.PRODUCT);
             LikeModel likeModel = LikeModel.of(command.userId(), command.targetId(), command.likeType());
             likeRepository.save(likeModel);
-            boolean isExist = likeRepository.isExists(command.userId(), command.targetId(), command.likeType());
+            boolean beforeIsExist = likeRepository.isExists(command.userId(), command.targetId(), command.likeType());
             sut.unlike(command);
+            boolean afterIsExist = likeRepository.isExists(command.userId(), command.targetId(), command.likeType());
 
-            assertThat(isExist).isTrue();
+            assertAll(
+                    () -> assertThat(beforeIsExist).isTrue(),
+                    () -> assertThat(afterIsExist).isFalse()
+            );
+        }
+
+        @DisplayName("좋아요하지 않은 상태면, 아무일도 일어나지 않는다.")
+        @Test
+        void when_userHasNotLikedTarget_then_doNothing() {
+            LikeCommand.Unlike command = new LikeCommand.Unlike(1L, 1L, LikeType.PRODUCT);
+            boolean beforeIsExist = likeRepository.isExists(command.userId(), command.targetId(), command.likeType());
+            sut.unlike(command);
+            boolean afterIsExist = likeRepository.isExists(command.userId(), command.targetId(), command.likeType());
+
+            assertAll(
+                    () -> assertThat(beforeIsExist).isFalse(),
+                    () -> assertThat(afterIsExist).isFalse()
+            );
         }
     }
 
