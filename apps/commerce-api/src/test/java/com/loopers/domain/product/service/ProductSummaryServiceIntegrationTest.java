@@ -100,7 +100,7 @@ class ProductSummaryServiceIntegrationTest {
         @Test
         void when_findAll_then_sortedByPrice() {
             // given
-            ProductCommand.ProductSummary criteria = new ProductSummary(1, 10, ProductSortType.SALE_PRICE, SortOrder.DESC);
+            ProductCommand.ProductSummary criteria = new ProductSummary(1, 10, ProductSortType.SALE_PRICE, SortOrder.ASC);
             // when
             PageResult<ProductSummaryInfo> result = sut.findAll(criteria);
             List<ProductSummaryInfo> content = result.content();
@@ -108,7 +108,23 @@ class ProductSummaryServiceIntegrationTest {
             // then
             assertThat(content).isNotEmpty();
             assertThat(content).isSortedAccordingTo(Comparator.comparing(
-                item -> item.salePrice(),
+                item -> item.salePrice()
+            ));
+        }
+
+        @DisplayName("상품의 정렬 조건(Latest)에 따라 최신 판매가순으로 조회된다.")
+        @Test
+        void when_findAll_then_sortedByLatest() {
+            // given
+            ProductCommand.ProductSummary criteria = new ProductSummary(1, 10, ProductSortType.LATEST, SortOrder.DESC);
+            // when
+            PageResult<ProductSummaryInfo> result = sut.findAll(criteria);
+            List<ProductSummaryInfo> content = result.content();
+
+            // then
+            assertThat(content).isNotEmpty();
+            assertThat(content).isSortedAccordingTo(Comparator.comparing(
+                item -> item.saleDate(),
                 Comparator.reverseOrder()
             ));
         }
