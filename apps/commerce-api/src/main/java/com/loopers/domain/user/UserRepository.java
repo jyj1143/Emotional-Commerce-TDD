@@ -6,4 +6,5 @@ public interface UserRepository {
     boolean existByLoginInfo(LoginInfo loginInfo);
     UserModel save(UserModel user);
     Optional<UserModel> findByLoginInfo(LoginInfo loginInfo);
+    Optional<UserModel> get(Long id);
 }
