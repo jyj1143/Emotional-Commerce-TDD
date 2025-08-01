@@ -2,11 +2,6 @@ package com.loopers.domain.brand.entity;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.loopers.domain.user.BirthDate;
-import com.loopers.domain.user.Email;
-import com.loopers.domain.user.Gender;
-import com.loopers.domain.user.LoginInfo;
-import com.loopers.domain.user.UserModel;
 import com.loopers.support.error.CoreException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

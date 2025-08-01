@@ -2,6 +2,7 @@ package com.loopers.domain.like.service;
 
 import com.loopers.domain.like.LikeModel;
 import com.loopers.domain.like.dto.LikeCommand;
+import com.loopers.domain.like.enums.LikeType;
 import com.loopers.domain.like.repository.LikeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,5 +27,9 @@ public class LikeService {
     public void unlike(final LikeCommand.Unlike command) {
         likeRepository.find(command.userId(), command.targetId(), command.likeType())
             .ifPresent(likeRepository::delete);
+    }
+
+    public Long count(Long targetId, LikeType likeType) {
+        return likeRepository.count(targetId, likeType);
     }
 }
