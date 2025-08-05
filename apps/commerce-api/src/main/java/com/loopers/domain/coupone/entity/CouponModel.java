@@ -22,11 +22,14 @@ import lombok.NoArgsConstructor;
 @Table(name = "coupon")
 public class CouponModel extends BaseEntity {
 
-    @Column(name = "ref_order_id", nullable = false)
-    private Long refOrderId;
+    @Column(name = "ref_coupon_policy_id", nullable = false)
+    private Long refCouponPolicyId;
 
     @Column(name = "ref_user_id", nullable = false)
     private Long refUserId;
+
+    @Column(name = "ref_order_id")
+    private Long orderId;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
@@ -35,8 +38,13 @@ public class CouponModel extends BaseEntity {
     @Embedded
     private UsagePeriod usagePeriod;
 
-    private CouponModel(Long refOrderId, Long refUserId, CouponStatus couponStatus, LocalDateTime issuedAt, LocalDateTime expirationTime) {
-        if (refOrderId == null) {
+    @Column(name = "used_at")
+    private LocalDateTime usedAt;
+
+
+    private CouponModel(Long refCouponPolicyId, Long refUserId, CouponStatus couponStatus, LocalDateTime issuedAt,
+        LocalDateTime expirationTime) {
+        if (refCouponPolicyId == null) {
             throw new CoreException(ErrorType.BAD_REQUEST, "주문 ID는 필수 값입니다.");
         }
 
@@ -49,13 +57,35 @@ public class CouponModel extends BaseEntity {
         }
 
         this.couponStatus = couponStatus;
-        this.refOrderId = refOrderId;
+        this.refCouponPolicyId = refCouponPolicyId;
         this.refUserId = refUserId;
         this.usagePeriod = UsagePeriod.of(issuedAt, expirationTime);
     }
 
-    public static CouponModel of(Long refOrderId, Long refUserId, CouponStatus couponStatus, LocalDateTime issuedAt, LocalDateTime expirationTime) {
-        return new CouponModel(refOrderId, refUserId, couponStatus, issuedAt, expirationTime);
+    public static CouponModel of(Long refCouponPolicyId, Long refUserId, CouponStatus couponStatus, LocalDateTime issuedAt,
+        LocalDateTime expirationTime) {
+        return new CouponModel(refCouponPolicyId, refUserId, couponStatus, issuedAt, expirationTime);
+    }
+
+    public boolean isUsed() {
+        return couponStatus == CouponStatus.USED;
+    }
+
+    public boolean isExpired() {
+        LocalDateTime now = LocalDateTime.now();
+        return now.isAfter(usagePeriod.getExpirationTime());
+    }
+
+    public void use(Long orderId) {
+        if (isUsed()) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "이미 사용한 쿠폰입니다.");
+        }
+        if (isExpired()) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "만료된 쿠폰입니다.");
+        }
+        this.couponStatus = CouponStatus.USED;
+        this.orderId = orderId;
+        this.usedAt = LocalDateTime.now();
     }
 
 }
