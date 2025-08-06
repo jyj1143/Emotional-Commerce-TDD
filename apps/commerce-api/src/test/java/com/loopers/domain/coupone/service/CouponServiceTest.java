@@ -12,6 +12,7 @@ import com.loopers.domain.coupone.repository.CouponPolicyRepository;
 import com.loopers.domain.coupone.repository.CouponRepository;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
+import com.loopers.support.pagenation.PageResult;
 import com.loopers.utils.DatabaseCleanUp;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -41,7 +42,6 @@ class CouponServiceTest {
     @Autowired
     private DatabaseCleanUp databaseCleanUp;
 
-
     @AfterEach
     void tearDown() {
         databaseCleanUp.truncateAllTables();
@@ -51,11 +51,85 @@ class CouponServiceTest {
     @Nested
     class IssueCoupon {
 
-        @DisplayName("[happy] - 쿠폰 정책이 주어지면,쿠폰을 발급한다.")
+        @DisplayName("[fail] - 쿠폰 정책이 없을 때 예외 발생")
+        @Test
+        void given_noCouponPolicy_when_issueCoupon_then_throwNotFoundError() {
+            // Given
+            Long invalidPolicyId = -1L;
+            Long userId = 1L;
+            CouponCommand.IssueCoupon command = new CouponCommand.IssueCoupon(invalidPolicyId, userId);
+
+            // When
+            CoreException actual = assertThrows(CoreException.class, () -> sut.issueCoupon(command));
+
+            // Then
+            assertThat(actual).usingRecursiveComparison()
+                .isEqualTo(new CoreException(ErrorType.NOT_FOUND, "쿠폰 정책을 찾을 수 없습니다."));
+        }
+
+        @DisplayName("[fail] - 쿠폰 발급 기간 외에 발급시도하면 예외 발생")
+        @Test
+        void given_outOfPeriod_when_issueCoupon_then_throwBadRequestError() {
+            // Given
+            CouponPolicyModel couponPolicyModel = CouponPolicyModel.of(
+                "만료된 쿠폰",
+                "쿠폰 설명",
+                LocalDateTime.now().minusDays(10),
+                LocalDateTime.now().minusDays(5),
+                DiscountType.FIXED_AMOUNT,
+                100L,
+                0,
+                0,
+                new BigDecimal("100"),
+                100L
+            );
+            CouponPolicyModel savedPolicyModel = couponPolicyRepository.save(couponPolicyModel);
+            Long policyId = savedPolicyModel.getId();
+            Long userId = 1L;
+            CouponCommand.IssueCoupon command = new CouponCommand.IssueCoupon(policyId, userId);
+
+            // When
+            CoreException actual = assertThrows(CoreException.class, () -> sut.issueCoupon(command));
+
+            // Then
+            assertThat(actual).usingRecursiveComparison()
+                .isEqualTo(new CoreException(ErrorType.BAD_REQUEST, "쿠폰 발급 기간이 아닙니다."));
+        }
+
+        @DisplayName("[fail] - 쿠폰이 모두 소진되면 예외 발생")
+        @Test
+        void given_noRemainingCoupons_when_issueCoupon_then_throwNotFoundError() {
+            // Given
+            CouponPolicyModel couponPolicyModel = CouponPolicyModel.of(
+                "소진된 쿠폰",
+                "쿠폰 설명",
+                LocalDateTime.now().minusDays(1),
+                LocalDateTime.now().plusDays(5),
+                DiscountType.FIXED_AMOUNT,
+                0L, // 잔여 수량 0
+                0,
+                0,
+                new BigDecimal("100"),
+                0L
+            );
+            CouponPolicyModel savedPolicyModel = couponPolicyRepository.save(couponPolicyModel);
+            Long policyId = savedPolicyModel.getId();
+            Long userId = 1L;
+            CouponCommand.IssueCoupon command = new CouponCommand.IssueCoupon(policyId, userId);
+
+            // When
+            CoreException actual = assertThrows(CoreException.class, () -> sut.issueCoupon(command));
+
+            // Then
+            assertThat(actual).usingRecursiveComparison()
+                .isEqualTo(new CoreException(ErrorType.NOT_FOUND, "쿠폰이 모두 소진되었습니다."));
+        }
+
+        @DisplayName("[happy] - 쿠폰 정책이 주어지면, 쿠폰을 발급한다.")
         @Test
         void given_couponPolicy_when_createCoupon_then_createCoupon() throws InterruptedException {
 
-            Long testQuantity = 100L;
+            Long testQuantity = 500L;
 
             CouponPolicyModel couponPolicyModel = CouponPolicyModel.of(
                 "테스트 쿠폰",
@@ -63,17 +137,17 @@ class CouponServiceTest {
                 LocalDateTime.now().minusDays(1),
                 LocalDateTime.now().plusDays(10),
                 DiscountType.FIXED_AMOUNT,
-                testQuantity, // 총 100개의 쿠폰만 발급 가능
+                testQuantity, // 총 testQuantity개의 쿠폰만 발급 가능
                 0,
                 0,
                 new BigDecimal("100"),
-                testQuantity// 초기 잔여 수량 10개
+                testQuantity// 초기 잔여 수량 testQuantity개
             );
 
             CouponPolicyModel savedCouponPolicyModel = couponPolicyRepository.save(couponPolicyModel);
             Long couponPolicyId = savedCouponPolicyModel.getId();
 
-            int numberOfThreads = (int) (testQuantity * 2);// 200명의 사용자가 동시에 요청
+            int numberOfThreads = (int) (testQuantity * 2);// testQuantity*2명의 사용자가 동시에 요청
             ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
             CountDownLatch latch = new CountDownLatch(numberOfThreads);
             AtomicInteger successCount = new AtomicInteger(0);
@@ -100,8 +174,8 @@ class CouponServiceTest {
             executorService.shutdown();
 
             // Then
-            assertEquals(100L, failCount.get()); // 100개의 요청은 실패해야 함
-            assertEquals(100L, successCount.get()); // 100개의 쿠폰만 성공적으로 발급되어야 함
+            assertEquals(testQuantity, failCount.get()); // testQuantity 개의 요청은 실패해야 함
+            assertEquals(testQuantity, successCount.get()); // testQuantity 개의 쿠폰만 성공적으로 발급되어야 함
 
             // 데이터베이스에서 실제 발급된 쿠폰 수 확인
             long actualIssuedCount = couponRepository.countByCouponPolicyId(couponPolicyId);
@@ -176,11 +250,54 @@ class CouponServiceTest {
     @DisplayName("쿠폰 조회할 때, ")
     @Nested
     class GetCoupons {
+        private static final Long TEST_USER_ID = 1000L;
+        private static final int DEFAULT_PAGE = 1;
+        private static final int DEFAULT_PAGE_SIZE = 10;
+
         @DisplayName("[happy] - 정상적으로 쿠폰 발급후, 회원 쿠폰조회 성공한다.")
         @Test
         void when_issueCoupons_then_SearchSuccess() {
+            // Given
+            CouponPolicyModel couponPolicy = createTestCouponPolicy();
+            CouponPolicyModel savedCouponPolicy = couponPolicyRepository.save(couponPolicy);
 
+            CouponCommand.IssueCoupon issueCouponCommand = new CouponCommand.IssueCoupon(
+                savedCouponPolicy.getId(),
+                TEST_USER_ID
+            );
+            CouponModel issuedCoupon = sut.issueCoupon(issueCouponCommand);
+
+            // When
+            CouponCommand.GetMyCoupons getMyCouponsCommand = new CouponCommand.GetMyCoupons(
+                DEFAULT_PAGE,
+                DEFAULT_PAGE_SIZE,
+                TEST_USER_ID
+            );
+            PageResult<CouponModel> couponsResult = sut.getCoupons(getMyCouponsCommand);
+
+            // Then
+            assertAll(
+                () -> assertThat(couponsResult.content()).hasSize(1),
+                () -> assertThat(couponsResult.content().get(0).getId()).isEqualTo(issuedCoupon.getId()),
+                () -> assertThat(couponsResult.content().get(0).getRefUserId()).isEqualTo(TEST_USER_ID)
+            );
         }
     }
+
+    private CouponPolicyModel createTestCouponPolicy() {
+        return CouponPolicyModel.of(
+            "테스트 쿠폰",
+            "테스트 쿠폰 설명",
+            LocalDateTime.now().minusDays(1),
+            LocalDateTime.now().plusDays(10),
+            DiscountType.FIXED_AMOUNT,
+            100L,
+            0,
+            0,
+            new BigDecimal("100"),
+            100L
+        );
+    }
+
 
 }

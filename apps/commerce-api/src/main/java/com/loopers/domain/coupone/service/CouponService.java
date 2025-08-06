@@ -1,6 +1,5 @@
 package com.loopers.domain.coupone.service;
 
-
 import com.loopers.domain.coupone.dto.CouponCommand;
 import com.loopers.domain.coupone.entity.CouponModel;
 import com.loopers.domain.coupone.entity.CouponPolicyModel;
@@ -11,7 +10,6 @@ import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import com.loopers.support.pagenation.PageResult;
 import java.time.LocalDateTime;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
