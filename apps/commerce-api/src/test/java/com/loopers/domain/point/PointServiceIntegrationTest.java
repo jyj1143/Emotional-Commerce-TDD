@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -129,75 +130,59 @@ public class PointServiceIntegrationTest {
     @Nested
     class ConcurrencyUsePoint {
 
-        @DisplayName("한번만 성공하고 나머지 ObjectOptimisticLockingFailureException가 발생한다")
+        @DisplayName("비관적 락으로 인해 모든 요청이 순차적으로 처리된다")
         @Test
-        void when_multipleConcurrentPointUsage_then_onlyOneSucceedsAndOthersFail() throws InterruptedException {
+        void when_multipleConcurrentPointUsage_then_allRequestsProcessedSequentially() throws InterruptedException {
             // Given
-            // 포인트 초기화 (사용자에게 충분한 포인트 지급)
             Long userId = 1L;
             Long initialAmount = 10000L;
             PointModel pointModel = PointModel.of(initialAmount, userId);
             pointRepository.save(pointModel);
 
-            // 동시에 사용할 포인트 금액
             Long useAmount = 1000L;
+            int numberOfThreads = 5;
 
-            // 여러 스레드로 동시에 포인트 사용 요청
-            int numberOfThreads = 5; // 동시 요청 수
             ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
-            CountDownLatch readyLatch = new CountDownLatch(numberOfThreads); // 모든 스레드가 준비될 때까지 대기
-            CountDownLatch startLatch = new CountDownLatch(1); // 시작 신호를 위한 래치
-            CountDownLatch completionLatch = new CountDownLatch(numberOfThreads); // 모든 스레드가 완료될 때까지 대기
+            CountDownLatch readyLatch = new CountDownLatch(numberOfThreads);
+            CountDownLatch startLatch = new CountDownLatch(1);
+            CountDownLatch completionLatch = new CountDownLatch(numberOfThreads);
 
             AtomicInteger successCount = new AtomicInteger(0);
-            AtomicInteger optimisticLockExceptionCount = new AtomicInteger(0);
-            AtomicInteger otherExceptionCount = new AtomicInteger(0);
+            AtomicInteger exceptionCount = new AtomicInteger(0);
 
             // When
             for (int i = 0; i < numberOfThreads; i++) {
                 executorService.submit(() -> {
                     try {
-                        // 준비 완료 신호
                         readyLatch.countDown();
-                        // 모든 스레드가 동시에 시작하도록 대기
                         startLatch.await();
 
-                        // 포인트 사용 요청
                         pointService.usePoint(new PointCommand.UsePoint(userId, useAmount));
                         successCount.incrementAndGet();
-                    } catch (ObjectOptimisticLockingFailureException e) {
-                        // 낙관적 락 예외 발생
-                        optimisticLockExceptionCount.incrementAndGet();
                     } catch (Exception e) {
-                        otherExceptionCount.incrementAndGet();
+                        exceptionCount.incrementAndGet();
                     } finally {
                         completionLatch.countDown();
                     }
                 });
             }
 
-            // 모든 스레드가 준비될 때까지 대기
             readyLatch.await();
-            // 모든 스레드에게 시작 신호
             startLatch.countDown();
-            // 모든 스레드가 완료될 때까지 대기
             completionLatch.await();
             executorService.shutdown();
 
             // Then
-            // 데이터베이스에서 최종 포인트 조회
             PointModel updatedPoint = pointRepository.findByUserId(userId).orElseThrow();
             Long finalAmount = updatedPoint.getAmount().getAmount();
 
             assertAll(
-                // 성공은 하나만 있어야 함
-                () -> assertThat(successCount.get()).isEqualTo(1),
-                // 낙관적 락 예외는 나머지 스레드 수만큼 발생해야 함
-                () -> assertThat(optimisticLockExceptionCount.get()).isEqualTo(numberOfThreads - 1),
-                // 다른 예외는 없어야 함
-                () -> assertThat(otherExceptionCount.get()).isEqualTo(0),
-                // 최종 포인트는 초기 금액에서 한 번의 사용 금액만 차감되어야 함
-                () -> assertThat(finalAmount).isEqualTo(initialAmount - useAmount)
+                // 모든 요청이 성공해야 함
+                () -> assertThat(successCount.get()).isEqualTo(numberOfThreads),
+                // 예외는 발생하지 않아야 함
+                () -> assertThat(exceptionCount.get()).isEqualTo(0),
+                // 최종 포인트는 모든 요청이 처리된 금액
+                () -> assertThat(finalAmount).isEqualTo(initialAmount - (numberOfThreads * useAmount))
             );
         }
     }
@@ -207,11 +192,11 @@ public class PointServiceIntegrationTest {
     @Nested
     class ConcurrencyChargePoint {
 
-        @DisplayName("한번만 성공하고 나머지 ObjectOptimisticLockingFailureException가 발생한다")
+        @DisplayName("비관적 락을 사용하여 모든 충전 요청이 순차적으로 처리된다")
         @Test
-        void when_multipleConcurrentPointCharge_then_onlyOneSucceedsAndOthersFail() throws InterruptedException {
+        void when_multipleConcurrentPointCharge_then_allRequestsProcessedSequentially() throws InterruptedException {
             // Given
-            // 포인트 초기화 (사용자에게 충분한 포인트 지급)
+            // 포인트 초기화
             Long userId = 1L;
             Long initialAmount = 0L;
             PointModel pointModel = PointModel.of(initialAmount, userId);
@@ -228,8 +213,7 @@ public class PointServiceIntegrationTest {
             CountDownLatch completionLatch = new CountDownLatch(numberOfThreads); // 모든 스레드가 완료될 때까지 대기
 
             AtomicInteger successCount = new AtomicInteger(0);
-            AtomicInteger optimisticLockExceptionCount = new AtomicInteger(0);
-            AtomicInteger otherExceptionCount = new AtomicInteger(0);
+            AtomicInteger exceptionCount = new AtomicInteger(0);
 
             // When
             for (int i = 0; i < numberOfThreads; i++) {
@@ -240,14 +224,11 @@ public class PointServiceIntegrationTest {
                         // 모든 스레드가 동시에 시작하도록 대기
                         startLatch.await();
 
-                        // 포인트 사용 요청
+                        // 포인트 충전 요청
                         pointService.chargePoint(new PointCommand.ChargePoint(userId, chargeAmount));
                         successCount.incrementAndGet();
-                    } catch (ObjectOptimisticLockingFailureException e) {
-                        // 낙관적 락 예외 발생
-                        optimisticLockExceptionCount.incrementAndGet();
                     } catch (Exception e) {
-                        otherExceptionCount.incrementAndGet();
+                        exceptionCount.incrementAndGet();
                     } finally {
                         completionLatch.countDown();
                     }
@@ -263,20 +244,17 @@ public class PointServiceIntegrationTest {
             executorService.shutdown();
 
             // Then
-            // 데이터베이스에서 최종 포인트 조회
+            // 최종 포인트 조회
             PointModel updatedPoint = pointRepository.findByUserId(userId).orElseThrow();
             Long finalAmount = updatedPoint.getAmount().getAmount();
 
             assertAll(
-                // 성공은 하나만 있어야 함
-                () -> assertThat(successCount.get()).isEqualTo(1),
-                // 낙관적 락 예외는 나머지 스레드 수만큼 발생해야 함
-                () -> assertThat(optimisticLockExceptionCount.get()).isEqualTo(numberOfThreads - 1),
-                // 다른 예외는 없어야 함
-                () -> assertThat(otherExceptionCount.get()).isEqualTo(0),
-                // 최종 포인트는 초기 금액에 한 번의 충전 금액만 더해져야 함
-                () -> assertThat(finalAmount).isEqualTo(initialAmount + chargeAmount
-                )
+                // 비관적 락을 사용하면 모든 요청이 성공해야 함
+                () -> assertThat(successCount.get()).isEqualTo(numberOfThreads),
+                // 예외는 발생하지 않아야 함
+                () -> assertThat(exceptionCount.get()).isEqualTo(0),
+                // 최종 포인트는 초기 금액에 모든 충전 금액이 더해져야 함
+                () -> assertThat(finalAmount).isEqualTo(initialAmount + (chargeAmount * numberOfThreads))
             );
         }
     }
@@ -287,7 +265,7 @@ public class PointServiceIntegrationTest {
     class ConcurrencyChargeAndUsePoint {
         @DisplayName("한번만 성공하고 나머지 ObjectOptimisticLockingFailureException가 발생한다")
         @Test
-        void when_concurrentChargeAndUsePoint_then_oneFailsWithOptimisticLockingFailureException() throws InterruptedException {
+        void when_concurrentChargeAndUsePoint_then_bothRequestsProcessedSequentially() throws InterruptedException {
             // Given
             // 포인트 초기화 (사용자 포인트 생성)
             Long userId = 1L;
@@ -307,8 +285,9 @@ public class PointServiceIntegrationTest {
             CountDownLatch completionLatch = new CountDownLatch(numberOfThreads); // 모든 스레드가 완료될 때까지 대기
 
             AtomicInteger successCount = new AtomicInteger(0);
-            AtomicInteger optimisticLockExceptionCount = new AtomicInteger(0);
-            AtomicInteger otherExceptionCount = new AtomicInteger(0);
+            AtomicInteger failCount = new AtomicInteger(0);
+            AtomicBoolean chargeSuccess = new AtomicBoolean(false);
+            AtomicBoolean useSuccess = new AtomicBoolean(false);
 
             // When
             // 충전 스레드
@@ -322,11 +301,9 @@ public class PointServiceIntegrationTest {
                     // 포인트 충전 요청
                     pointService.chargePoint(new PointCommand.ChargePoint(userId, chargeAmount));
                     successCount.incrementAndGet();
-                } catch (ObjectOptimisticLockingFailureException e) {
-                    // 낙관적 락 예외 발생
-                    optimisticLockExceptionCount.incrementAndGet();
+                    chargeSuccess.set(true);
                 } catch (Exception e) {
-                    otherExceptionCount.incrementAndGet();
+                    failCount.incrementAndGet();
                 } finally {
                     completionLatch.countDown();
                 }
@@ -343,11 +320,9 @@ public class PointServiceIntegrationTest {
                     // 포인트 사용 요청
                     pointService.usePoint(new PointCommand.UsePoint(userId, useAmount));
                     successCount.incrementAndGet();
-                } catch (ObjectOptimisticLockingFailureException e) {
-                    // 낙관적 락 예외 발생
-                    optimisticLockExceptionCount.incrementAndGet();
+                    useSuccess.set(true);
                 } catch (Exception e) {
-                    otherExceptionCount.incrementAndGet();
+                    failCount.incrementAndGet();
                 } finally {
                     completionLatch.countDown();
                 }
@@ -362,19 +337,22 @@ public class PointServiceIntegrationTest {
             executorService.shutdown();
 
             // Then
-            // 데이터베이스에서 최종 포인트 조회
+            // 최종 포인트 조회
             PointModel updatedPoint = pointRepository.findByUserId(userId).orElseThrow();
             Long finalAmount = updatedPoint.getAmount().getAmount();
 
+            // 비관적 락을 사용하면 두 요청 모두 성공해야 함
             assertAll(
-                // 성공은 1개만 있어야 함
-                () -> assertThat(successCount.get()).isEqualTo(1),
-                // 낙관적 락 예외는 1번 발생해야 함
-                () -> assertThat(optimisticLockExceptionCount.get()).isEqualTo(1),
-                // 다른 예외는 없어야 함
-                () -> assertThat(otherExceptionCount.get()).isEqualTo(0),
-                // 최종 포인트는 초기 금액에서 한 작업만 반영되어야 함
-                () -> assertThat(finalAmount).isIn(Arrays.asList(initialAmount + chargeAmount, initialAmount - useAmount))
+                // 두 요청 모두 성공
+                () -> assertThat(successCount.get()).isEqualTo(2),
+                // 실패 없음
+                () -> assertThat(failCount.get()).isEqualTo(0),
+                // 충전 성공
+                () -> assertThat(chargeSuccess.get()).isTrue(),
+                // 사용 성공
+                () -> assertThat(useSuccess.get()).isTrue(),
+                // 최종 포인트는 초기 금액 + 충전 금액 - 사용 금액
+                () -> assertThat(finalAmount).isEqualTo(initialAmount + chargeAmount - useAmount)
             );
         }
     }

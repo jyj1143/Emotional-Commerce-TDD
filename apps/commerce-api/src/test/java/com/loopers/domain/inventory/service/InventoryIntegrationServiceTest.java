@@ -43,7 +43,7 @@ class InventoryIntegrationServiceTest {
         void given_concurrentRequests_when_decreaseStock_then_stockDecreasedCorrectly() throws InterruptedException {
             // Given
             // 상품 및 재고 생성
-            ProductSkuModel productSkuModel = ProductSkuModel.of(0L, "색상", "RED"
+            ProductSkuModel productSkuModel = ProductSkuModel.of(0L,0L, "색상", "RED"
                 , SaleStatus.ON_SALE, 1L);
             ProductSkuModel productSku = productSkuRepository.save(productSkuModel);
             inventoryRepository.save(InventoryModel.of(TEST_STOCK_SIZE, productSku.getId()));

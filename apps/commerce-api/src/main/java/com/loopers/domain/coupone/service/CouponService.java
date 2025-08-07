@@ -1,6 +1,9 @@
 package com.loopers.domain.coupone.service;
 
+import com.loopers.domain.coupone.DiscountPolicy;
+import com.loopers.domain.coupone.DiscountPolicyFactory;
 import com.loopers.domain.coupone.dto.CouponCommand;
+import com.loopers.domain.coupone.dto.CouponInfo;
 import com.loopers.domain.coupone.entity.CouponModel;
 import com.loopers.domain.coupone.entity.CouponPolicyModel;
 import com.loopers.domain.coupone.enums.CouponStatus;
@@ -10,6 +13,7 @@ import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import com.loopers.support.pagenation.PageResult;
 import java.time.LocalDateTime;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +26,7 @@ public class CouponService {
     private final CouponPolicyRepository couponPolicyRepository;
 
     @Transactional
-    public CouponModel issueCoupon(CouponCommand.IssueCoupon command) {
+    public CouponInfo issueCoupon(CouponCommand.IssueCoupon command) {
         // 쿠폰 정책을 조회하고 락을 획득
         CouponPolicyModel couponPolicyModel = couponPolicyRepository.findWithLock(command.couponPolicyId())
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "쿠폰 정책을 찾을 수 없습니다."));
@@ -50,22 +54,52 @@ public class CouponService {
             couponPolicyModel.getCouponPeriod().getEndTime()
         );
 
-        return couponRepository.save(couponModel);
+        CouponModel saved = couponRepository.save(couponModel);
+        return CouponInfo.from(saved);
     }
 
     @Transactional
-    public CouponModel useCoupon(CouponCommand.UseCoupon command) {
-        CouponModel couponModel = couponRepository.findByIdAndUserId(command.couponId(), command.userId())
+    public CouponInfo useCoupon(CouponCommand.UseCoupon command) {
+        CouponModel couponModel = couponRepository.findWithLockByIdAndRefUserId(command.couponId(), command.userId())
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "쿠폰을 찾을 수 없습니다."));
 
         couponModel.use(command.orderId());
 
-        return couponModel;
+        return CouponInfo.from(couponModel);
     }
 
     @Transactional(readOnly = true)
-    public PageResult<CouponModel> getCoupons(CouponCommand.GetMyCoupons command) {
-        return couponRepository.findUserCoupon(command.userId(), command.page(), command.size());
+    public PageResult<CouponInfo> getCoupons(CouponCommand.GetMyCoupons command) {
+        PageResult<CouponModel> pageResult = couponRepository.findUserCoupon(command.userId(), command.page(), command.size());
+        List<CouponInfo> couponInfos = pageResult.content().stream().map(CouponInfo::from).toList();
+        return new PageResult<>(
+            couponInfos,
+            pageResult.paginationInfo()
+        );
+    }
+
+    @Transactional
+    public Long calculateDiscount(Long couponId, Long userId, Long orderAmount) {
+        CouponModel couponModel = couponRepository.findByIdAndUserId(couponId, userId)
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "쿠폰을 찾을 수 없습니다."));
+
+        if (couponModel.isUsed() || couponModel.isExpired()) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "사용할 수 없는 쿠폰입니다.");
+        }
+
+        CouponPolicyModel policyModel = couponPolicyRepository.find(couponModel.getRefCouponPolicyId())
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "쿠폰 정책을 찾을 수 없습니다."));
+
+        // 최소 주문 금액 검증
+        if (policyModel.getOrderAmountCondition().getMinimumOrderAmount() != null
+            && orderAmount < policyModel.getOrderAmountCondition().getMinimumOrderAmount()) {
+            throw new CoreException(ErrorType.BAD_REQUEST,
+                "최소 주문 금액(" + policyModel.getOrderAmountCondition().getMinimumOrderAmount() + "원)을 충족하지 않습니다.");
+        }
+
+        // 할인 정책 생성 및 적용
+        DiscountPolicy discountPolicy = DiscountPolicyFactory.createFrom(policyModel);
+        return discountPolicy.calculateDiscount(orderAmount);
     }
 
 }

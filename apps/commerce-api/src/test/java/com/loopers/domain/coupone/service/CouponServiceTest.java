@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.loopers.domain.coupone.dto.CouponCommand;
+import com.loopers.domain.coupone.dto.CouponInfo;
 import com.loopers.domain.coupone.entity.CouponModel;
 import com.loopers.domain.coupone.entity.CouponPolicyModel;
 import com.loopers.domain.coupone.enums.CouponStatus;
@@ -221,13 +222,13 @@ class CouponServiceTest {
             CouponCommand.UseCoupon useCoupon = new CouponCommand.UseCoupon(couponPolicyId, TEST_ORDER_ID, TEST_USER_ID);
 
             // When
-            CouponModel actual = sut.useCoupon(useCoupon);
+            CouponInfo actual = sut.useCoupon(useCoupon);
 
             // Then
             assertAll(
-                () -> assertThat(actual.getId()).isEqualTo(couponPolicyId),
-                () -> assertThat(actual.getOrderId()).isEqualTo(TEST_ORDER_ID),
-                () -> assertThat(actual.getCouponStatus()).isEqualTo(CouponStatus.USED)
+                () -> assertThat(actual.id()).isEqualTo(couponPolicyId),
+                () -> assertThat(actual.orderId()).isEqualTo(TEST_ORDER_ID),
+                () -> assertThat(actual.couponStatus()).isEqualTo(CouponStatus.USED)
             )
             ;
         }
@@ -268,8 +269,8 @@ class CouponServiceTest {
 
             // 쿠폰 발급
             CouponCommand.IssueCoupon issueCoupon = new CouponCommand.IssueCoupon(couponPolicyId, TEST_USER_ID);
-            CouponModel issuedCoupon = sut.issueCoupon(issueCoupon);
-            Long couponId = issuedCoupon.getId();
+            CouponInfo issuedCoupon = sut.issueCoupon(issueCoupon);
+            Long couponId = issuedCoupon.id();
 
             // 쿠폰 첫 번째 사용 (성공)
             CouponCommand.UseCoupon firstUseCoupon = new CouponCommand.UseCoupon(couponId, TEST_ORDER_ID, TEST_USER_ID);
@@ -306,7 +307,7 @@ class CouponServiceTest {
                 savedCouponPolicy.getId(),
                 TEST_USER_ID
             );
-            CouponModel issuedCoupon = sut.issueCoupon(issueCouponCommand);
+            CouponInfo issuedCoupon = sut.issueCoupon(issueCouponCommand);
 
             // When
             CouponCommand.GetMyCoupons getMyCouponsCommand = new CouponCommand.GetMyCoupons(
@@ -314,13 +315,13 @@ class CouponServiceTest {
                 DEFAULT_PAGE_SIZE,
                 TEST_USER_ID
             );
-            PageResult<CouponModel> couponsResult = sut.getCoupons(getMyCouponsCommand);
+            PageResult<CouponInfo> couponsResult = sut.getCoupons(getMyCouponsCommand);
 
             // Then
             assertAll(
                 () -> assertThat(couponsResult.content()).hasSize(1),
-                () -> assertThat(couponsResult.content().get(0).getId()).isEqualTo(issuedCoupon.getId()),
-                () -> assertThat(couponsResult.content().get(0).getRefUserId()).isEqualTo(TEST_USER_ID)
+                () -> assertThat(couponsResult.content().get(0).id()).isEqualTo(issuedCoupon.id()),
+                () -> assertThat(couponsResult.content().get(0).refUserId()).isEqualTo(TEST_USER_ID)
             );
         }
     }

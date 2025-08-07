@@ -35,7 +35,7 @@ public class Amount {
 
     public void use(Long amount) {
         if (this.amount < amount) {
-            throw new CoreException(ErrorType.BAD_REQUEST, "금액이 부족하여 합니다.");
+            throw new CoreException(ErrorType.BAD_REQUEST, "금액이 부족 합니다.");
         }
 
         this.amount -= amount;

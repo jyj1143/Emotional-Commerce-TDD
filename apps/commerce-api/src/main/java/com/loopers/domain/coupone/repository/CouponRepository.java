@@ -14,5 +14,7 @@ public interface CouponRepository {
 
     Optional<CouponModel> findByIdAndUserId(Long id, Long userId);
 
+    Optional<CouponModel> findWithLockByIdAndRefUserId(Long id, Long userId);
+
     PageResult<CouponModel> findUserCoupon(Long userId, Integer page, Integer size);
 }

@@ -21,7 +21,7 @@ class InventoryModelTest {
         })
         void given_invalidQuantity_when_createInventory_then_throwCoreException(Long invalidQuantity) {
             // given
-            ProductSkuModel productSkuModel = ProductSkuModel.of(0L, "색상", "RED"
+            ProductSkuModel productSkuModel = ProductSkuModel.of(0L,0L, "색상", "RED"
                 , SaleStatus.ON_SALE, null);
             Long refProductId = productSkuModel.getRefProductId();
             // when

@@ -29,21 +29,22 @@ public class PointService {
 
     @Transactional
     public void chargePoint(PointCommand.ChargePoint command) {
-        PointModel pointModel = pointRepository.findByUserId(command.userId())
+        PointModel pointModel = pointRepository.findWithLockByUserId(command.userId())
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "회원이 존재하지 않습니다."));
         pointModel.charge(command.point());
+        pointRepository.save(pointModel);
     }
 
     @Transactional
     public void usePoint(PointCommand.UsePoint command) {
-        PointModel pointModel = pointRepository.findByUserId(command.userId())
+        PointModel pointModel = pointRepository.findWithLockByUserId(command.userId())
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "회원이 존재하지 않습니다."));
         pointModel.use(command.point());
         pointRepository.save(pointModel);
     }
 
     public PointInfo getPoint(PointCommand.GetPoint command) {
-        return pointRepository.findByUserId(command.userId()).map(PointInfo::from)
+        return pointRepository.findWithLockByUserId(command.userId()).map(PointInfo::from)
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "회원 포인트가 존재하지 않습니다."));
     }
 }

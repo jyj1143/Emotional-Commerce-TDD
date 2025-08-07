@@ -36,6 +36,11 @@ public class CouponRepositoryImpl implements CouponRepository {
         return couponJpaRepository.findByIdAndRefUserId(id, userId);
     }
 
+    @Override
+    public Optional<CouponModel> findWithLockByIdAndRefUserId(Long id, Long userId) {
+        return couponJpaRepository.findWithLockByIdAndRefUserId(id, userId);
+    }
+
 
     @Override
     public PageResult<CouponModel> findUserCoupon(Long userId, Integer page, Integer size) {
