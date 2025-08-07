@@ -36,8 +36,11 @@ public class CouponService {
             throw new CoreException(ErrorType.BAD_REQUEST, "쿠폰 발급 기간이 아닙니다.");
         }
 
-        // 쿠폰 수량 감소 (한 번의 업데이트로 처리)
-        couponPolicyRepository.decreaseRemainQuantity(command.couponPolicyId());
+        // 쿠폰 수량 감소 (원자적 업데이트)
+        int updated = couponPolicyRepository.decreaseRemainQuantity(command.couponPolicyId());
+        if (updated == 0) {
+            throw new CoreException(ErrorType.NOT_FOUND, "쿠폰이 모두 소진되었습니다.");
+        }
 
         CouponModel couponModel = CouponModel.of(
             command.couponPolicyId(),
