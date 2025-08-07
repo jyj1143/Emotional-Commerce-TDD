@@ -174,8 +174,8 @@ class CouponServiceTest {
             executorService.shutdown();
 
             // Then
-            assertEquals(testQuantity, failCount.get()); // testQuantity 개의 요청은 실패해야 함
-            assertEquals(testQuantity, successCount.get()); // testQuantity 개의 쿠폰만 성공적으로 발급되어야 함
+            assertEquals(numberOfThreads - testQuantity, failCount.get()); // numberOfThreads - testQuantity 개의 요청은 실패
+            assertEquals(testQuantity, successCount.get()); // testQuantity 개의 쿠폰만 성공적으로 발급
 
             // 데이터베이스에서 실제 발급된 쿠폰 수 확인
             long actualIssuedCount = couponRepository.countByCouponPolicyId(couponPolicyId);

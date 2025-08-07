@@ -1,5 +1,6 @@
 package com.loopers.domain.coupone.entity;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.loopers.domain.coupone.enums.DiscountType;
@@ -28,7 +29,7 @@ class CouponPolicyModelTest {
             Long totalQuantity = 100L;
             Integer minimumOrderAmount = 1000;
             Integer maximumDiscountAmount = 500;
-            BigDecimal discountValue = BigDecimal.valueOf(50);
+            BigDecimal discountValue = BigDecimal.valueOf(50.00);
             Long remainQuantity = 100L;
 
             // When
@@ -49,7 +50,7 @@ class CouponPolicyModelTest {
                 () -> assertEquals(endTime, couponPolicyModel.getCouponPeriod().getEndTime()),
                 () -> assertEquals(minimumOrderAmount, couponPolicyModel.getOrderAmountCondition().getMinimumOrderAmount()),
                 () -> assertEquals(maximumDiscountAmount, couponPolicyModel.getOrderAmountCondition().getMaximumDiscountAmount()),
-                () -> assertEquals(discountValue, couponPolicyModel.getDiscountValue().getDiscountValue())
+                () -> assertThat(couponPolicyModel.getDiscountValue().getDiscountValue()).isEqualByComparingTo(discountValue)
             );
         }
     }
