@@ -245,6 +245,47 @@ class CouponServiceTest {
             assertThat(actual).usingRecursiveComparison()
                 .isEqualTo(new CoreException(ErrorType.NOT_FOUND, "쿠폰을 찾을 수 없습니다."));
         }
+
+        @DisplayName("[fail] - 이미 사용한 쿠폰은 다시 사용할 수 없다")
+        @Test
+        void given_usedCoupon_when_usedCoupon_then_throwBadRequestError() {
+            // Given
+            // 쿠폰 정책 생성
+            CouponPolicyModel couponPolicyModel = CouponPolicyModel.of(
+                "테스트 쿠폰",
+                "테스트 쿠폰 설명",
+                LocalDateTime.now().minusDays(1),
+                LocalDateTime.now().plusDays(10),
+                DiscountType.FIXED_AMOUNT,
+                100L,
+                0,
+                0,
+                new BigDecimal("100"),
+                100L
+            );
+            CouponPolicyModel savedCouponPolicyModel = couponPolicyRepository.save(couponPolicyModel);
+            Long couponPolicyId = savedCouponPolicyModel.getId();
+
+            // 쿠폰 발급
+            CouponCommand.IssueCoupon issueCoupon = new CouponCommand.IssueCoupon(couponPolicyId, TEST_USER_ID);
+            CouponModel issuedCoupon = sut.issueCoupon(issueCoupon);
+            Long couponId = issuedCoupon.getId();
+
+            // 쿠폰 첫 번째 사용 (성공)
+            CouponCommand.UseCoupon firstUseCoupon = new CouponCommand.UseCoupon(couponId, TEST_ORDER_ID, TEST_USER_ID);
+            sut.useCoupon(firstUseCoupon);
+
+            // When & Then
+            // 쿠폰 두 번째 사용 (실패)
+            CouponCommand.UseCoupon secondUseCoupon = new CouponCommand.UseCoupon(couponId, TEST_ORDER_ID + 1, TEST_USER_ID);
+
+            CoreException actual = assertThrows(CoreException.class, () -> {
+                sut.useCoupon(secondUseCoupon);
+            });
+
+            assertThat(actual).usingRecursiveComparison()
+                .isEqualTo(new CoreException(ErrorType.BAD_REQUEST, "이미 사용한 쿠폰입니다."));
+        }
     }
 
     @DisplayName("쿠폰 조회할 때, ")
