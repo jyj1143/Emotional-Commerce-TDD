@@ -1,6 +1,5 @@
 package com.loopers.domain.point.service;
 
-import com.loopers.domain.inventory.InventoryModel;
 import com.loopers.domain.point.PointModel;
 import com.loopers.domain.point.repository.PointRepository;
 import com.loopers.domain.point.service.dto.PointCommand;
@@ -32,20 +31,15 @@ public class PointService {
     public void chargePoint(PointCommand.ChargePoint command) {
         PointModel pointModel = pointRepository.findByUserId(command.userId())
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "회원이 존재하지 않습니다."));
-
-       pointRepository.increase(command.userId(), command.point());
+        pointModel.charge(command.point());
     }
 
     @Transactional
     public void usePoint(PointCommand.UsePoint command) {
         PointModel pointModel = pointRepository.findByUserId(command.userId())
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "회원이 존재하지 않습니다."));
-
-        if (pointModel.getAmount().getAmount() < command.point()) {
-            throw new CoreException(ErrorType.BAD_REQUEST, "포인트가 부족합니다.");
-        }
-
-        pointRepository.decrease(command.userId(), command.point());
+        pointModel.use(command.point());
+        pointRepository.save(pointModel);
     }
 
     public PointInfo getPoint(PointCommand.GetPoint command) {
