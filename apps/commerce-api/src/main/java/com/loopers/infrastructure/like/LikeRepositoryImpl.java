@@ -37,4 +37,9 @@ public class LikeRepositoryImpl implements LikeRepository {
     public Optional<LikeModel> find(Long userId, Long target, LikeType type) {
         return likeJpaRepository.findByUserIdAndTargetIdAndLikeType(userId, target, type);
     }
+
+    @Override
+    public Optional<LikeModel> findWithLock(Long userId, Long target, LikeType type) {
+        return likeJpaRepository.findWithLockByUserIdAndTargetIdAndLikeType(userId, target, type);
+    }
 }

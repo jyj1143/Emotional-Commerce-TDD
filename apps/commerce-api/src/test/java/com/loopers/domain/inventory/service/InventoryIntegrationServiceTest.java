@@ -36,31 +36,21 @@ class InventoryIntegrationServiceTest {
 
     @DisplayName("재고 감소시킬때, ")
     @Nested
-    class Create {
-
-        private ProductSkuModel createProductSkuWithStock() {
-            ProductSkuModel productSkuModel = ProductSkuModel.of(0L, "색상", "RED"
-                , SaleStatus.ON_SALE, 1L);
-
-            return productSkuRepository.save(productSkuModel);
-        }
-
-
+    class Decrease {
+        private static final Long TEST_STOCK_SIZE = 50L;
         @DisplayName("동시에 재고 차감 성공한다.")
         @Test
         void given_concurrentRequests_when_decreaseStock_then_stockDecreasedCorrectly() throws InterruptedException {
             // Given
-            Long initialStock = 100L;
-
             // 상품 및 재고 생성
             ProductSkuModel productSkuModel = ProductSkuModel.of(0L, "색상", "RED"
                 , SaleStatus.ON_SALE, 1L);
             ProductSkuModel productSku = productSkuRepository.save(productSkuModel);
-            inventoryRepository.save(InventoryModel.of(initialStock, productSku.getId()));
+            inventoryRepository.save(InventoryModel.of(TEST_STOCK_SIZE, productSku.getId()));
 
-            int numberOfThreads = 50; // 50개의 동시 요청
+            int numberOfThreads = 100; // 100개의 동시 요청
             long requestQuantity = 1L; // 각 요청당 1개씩 차감
-            int expectedTotalDecreased = (int)(numberOfThreads * requestQuantity); // 예상 총 차감량
+
 
             ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
             CountDownLatch latch = new CountDownLatch(numberOfThreads);
@@ -88,14 +78,13 @@ class InventoryIntegrationServiceTest {
             executorService.shutdown();
 
             // Then
-            // 모든 요청이 성공했는지 확인
-            assertEquals(numberOfThreads, successCount.get());
-            assertEquals(0, failCount.get());
+            assertEquals(TEST_STOCK_SIZE, successCount.get());
+            assertEquals(50, failCount.get());
 
             InventoryModel inventory = sut.getInventory(new GetInventory(productSku.getId()));
-
+            int expectedTotalDecreased = (int)(successCount.get() * requestQuantity); // 예상 총 차감량
             // 재고가 정확히 차감되었는지 확인
-            assertEquals(initialStock - expectedTotalDecreased, inventory.getQuantity().getQuantity());
+            assertEquals(TEST_STOCK_SIZE - expectedTotalDecreased, inventory.getQuantity().getQuantity());
         }
     }
 }

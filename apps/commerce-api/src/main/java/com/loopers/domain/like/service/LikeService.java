@@ -5,7 +5,9 @@ import com.loopers.domain.like.dto.LikeCommand;
 import com.loopers.domain.like.enums.LikeType;
 import com.loopers.domain.like.repository.LikeRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
@@ -14,18 +16,28 @@ public class LikeService {
 
     private final LikeRepository likeRepository;
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW, noRollbackFor = DataIntegrityViolationException.class)
     public void like(LikeCommand.Like command) {
-        LikeModel like = LikeModel.of(command.userId(), command.targetId(), command.likeType());
-        if (likeRepository.isExists(like.getUserId(), like.getTargetId(), like.getLikeType())) {
-            return;
+
+        // 이미 존재하는지 확인
+        if (likeRepository.isExists(command.userId(), command.targetId(), command.likeType())) {
+            return; // 이미 존재하면 아무 작업 없이 리턴
         }
-        likeRepository.save(like);
+
+        try {
+            LikeModel like = LikeModel.of(command.userId(), command.targetId(), command.likeType());
+            likeRepository.save(like);
+        } catch (DataIntegrityViolationException e) {
+            // 동시성 문제로 인한 중복 등록 시도 - 무시
+            // 이 예외는 롤백되지 않음 (noRollbackFor 설정)
+           return;
+        }
+
     }
 
     @Transactional
-    public void unlike(final LikeCommand.Unlike command) {
-        likeRepository.find(command.userId(), command.targetId(), command.likeType())
+    public void unlike(LikeCommand.Unlike command) {
+        likeRepository.findWithLock(command.userId(), command.targetId(), command.likeType())
             .ifPresent(likeRepository::delete);
     }
 

@@ -15,4 +15,6 @@ public interface LikeRepository {
     boolean isExists(Long userId, Long target, LikeType type);
 
     Optional<LikeModel> find(Long userId, Long target, LikeType type);
+
+    Optional<LikeModel> findWithLock(Long userId, Long target, LikeType type);
 }
