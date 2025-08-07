@@ -37,8 +37,7 @@ public class LikeService {
 
     @Transactional
     public void unlike(LikeCommand.Unlike command) {
-        likeRepository.findWithLock(command.userId(), command.targetId(), command.likeType())
-            .ifPresent(likeRepository::delete);
+        likeRepository.deleteWithLock(command.userId(), command.targetId(), command.likeType());
     }
 
     public Long count(Long targetId, LikeType likeType) {

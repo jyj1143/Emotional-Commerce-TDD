@@ -19,8 +19,8 @@ public class LikeRepositoryImpl implements LikeRepository {
     }
 
     @Override
-    public void delete(LikeModel like) {
-        likeJpaRepository.deleteById(like.getId());
+    public void deleteWithLock(Long userId,  Long targetId,  LikeType likeType) {
+        likeJpaRepository.deleteWithLock(userId, targetId, likeType);
     }
 
     @Override
