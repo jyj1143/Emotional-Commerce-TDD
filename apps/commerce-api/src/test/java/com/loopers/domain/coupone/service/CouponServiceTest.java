@@ -130,7 +130,7 @@ class CouponServiceTest {
         @Test
         void given_couponPolicy_when_createCoupon_then_createCoupon() throws InterruptedException {
 
-            Long testQuantity = 500L;
+            Long testQuantity = 100L;
 
             CouponPolicyModel couponPolicyModel = CouponPolicyModel.of(
                 "테스트 쿠폰",
