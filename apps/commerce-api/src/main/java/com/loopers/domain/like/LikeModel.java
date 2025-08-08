@@ -9,6 +9,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,12 +17,15 @@ import lombok.NoArgsConstructor;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@Table(name = "likes")
+@Table(name = "likes",
+    uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"ref_user_id", "ref_target_id", "like_type"})
+})
 public class LikeModel extends BaseEntity {
-    @Column(name = "user_id", nullable = false)
+    @Column(name = "ref_user_id", nullable = false)
     private Long userId;
 
-    @Column(name = "target_id", nullable = false)
+    @Column(name = "ref_target_id", nullable = false)
     private Long targetId;
 
     @Enumerated(EnumType.STRING)

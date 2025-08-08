@@ -64,4 +64,7 @@ public class OrderModel extends BaseEntity {
             .reduce(0L, Long::sum );
     }
 
+    public void completeOrder() {
+        this.status = OrderStatus.ORDER_SUCCESS;
+    }
 }

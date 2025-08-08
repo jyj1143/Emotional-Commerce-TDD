@@ -8,7 +8,7 @@ public class Pageable {
     private final int size;
 
     public Pageable() {
-        this(1, 10);
+        this(1, 20);
     }
 
     public Pageable(int page, int size) {

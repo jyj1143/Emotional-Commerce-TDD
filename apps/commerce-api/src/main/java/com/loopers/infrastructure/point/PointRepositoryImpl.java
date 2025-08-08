@@ -43,6 +43,11 @@ public class PointRepositoryImpl implements PointRepository {
     }
 
     @Override
+    public Optional<PointModel> findWithLockByUserId(Long userId) {
+        return pointJpaRepository.findWithLockByUserId(userId);
+    }
+
+    @Override
     public Boolean existsByUserId(Long userId) {
         return pointJpaRepository.existsByRefUserId(userId);
     }

@@ -19,8 +19,8 @@ public class LikeRepositoryImpl implements LikeRepository {
     }
 
     @Override
-    public void delete(LikeModel like) {
-        likeJpaRepository.deleteById(like.getId());
+    public void deleteWithLock(Long userId,  Long targetId,  LikeType likeType) {
+        likeJpaRepository.deleteWithLock(userId, targetId, likeType);
     }
 
     @Override
@@ -36,5 +36,10 @@ public class LikeRepositoryImpl implements LikeRepository {
     @Override
     public Optional<LikeModel> find(Long userId, Long target, LikeType type) {
         return likeJpaRepository.findByUserIdAndTargetIdAndLikeType(userId, target, type);
+    }
+
+    @Override
+    public Optional<LikeModel> findWithLock(Long userId, Long target, LikeType type) {
+        return likeJpaRepository.findWithLockByUserIdAndTargetIdAndLikeType(userId, target, type);
     }
 }
