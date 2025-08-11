@@ -2,6 +2,7 @@ package com.loopers.infrastructure.inventory;
 
 import com.loopers.domain.inventory.InventoryModel;
 import com.loopers.domain.inventory.repository.InventoryRepository;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -20,6 +21,11 @@ public class InventoryRepositoryImpl implements InventoryRepository {
     @Override
     public Optional<InventoryModel> find(Long productSkuId) {
         return inventoryJpaRepository.findByRefProductSkuId(productSkuId);
+    }
+
+    @Override
+    public Optional<InventoryModel> findWithLock(Long productSkuId) {
+        return inventoryJpaRepository.findByRefProductSkuIdWithLock(productSkuId);
     }
 
     @Override

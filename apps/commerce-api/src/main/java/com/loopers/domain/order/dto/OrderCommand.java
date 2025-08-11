@@ -7,8 +7,18 @@ public record OrderCommand() {
 
     public record Order(
         Long userId,
-        List<OrderItemModel> orderItemModels
+        List<OrderItem> orderItem
     ) {
-
+        public record OrderItem(
+            Long quantity,
+            Long purchasePrice,
+            Long refProductSkuId
+        ) {
+            public OrderItemModel toOrderItem() {
+                return OrderItemModel.of(quantity, purchasePrice, refProductSkuId);
+            }
+        }
     }
+
+
 }

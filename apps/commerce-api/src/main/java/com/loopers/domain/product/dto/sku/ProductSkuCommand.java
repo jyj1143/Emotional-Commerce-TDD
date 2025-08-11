@@ -23,4 +23,14 @@ public record ProductSkuCommand() {
 
     }
 
+    public record GetValidSku(
+        List<OrderSku> skuList
+    ) {
+    }
+
+    public record OrderSku(
+        Long skuId, Long quantity
+    ) {
+    }
+
 }

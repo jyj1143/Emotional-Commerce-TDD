@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 import com.loopers.domain.order.dto.OrderCommand;
+import com.loopers.domain.order.dto.OrderCommand.Order.OrderItem;
 import com.loopers.domain.order.dto.OrderInfo;
 import com.loopers.domain.order.enums.OrderStatus;
 import com.loopers.domain.order.service.OrderService;
@@ -29,7 +30,7 @@ public class OrderServiceIntegrationTest {
             // given
             OrderCommand.Order command = new OrderCommand.Order(
                 1L,
-                List.of(OrderItemModel.of(10L, 10L, 10L))
+                List.of(new OrderItem(10L, 10L, 10L))
             );
 
             // when

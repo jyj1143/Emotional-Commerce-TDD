@@ -8,6 +8,7 @@ public record ProductSkuInfo(
     Long id,
     String optionType,
     String optionValue,
+    Long price,
     Long additionalPrice,
     Long refProductId,
     SaleStatus saleStatus
@@ -17,6 +18,7 @@ public record ProductSkuInfo(
             productSku.getId(),
             productSku.getOption().getOptionType(),
             productSku.getOption().getOptionType(),
+            productSku.getPrice().getAmount(),
             productSku.getAdditionalPrice().getAmount(),
             productSku.getRefProductId(),
             productSku.getSaleStatus()

@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Embeddable
 public class Amount {
+
     @Column(name = "amount", nullable = false)
     Long amount;
 
@@ -22,5 +23,21 @@ public class Amount {
             throw new CoreException(ErrorType.BAD_REQUEST, "포인트는 음수일 수 없습니다.");
         }
         this.amount = amount;
+    }
+
+    public void charge(Long amount) {
+        if (amount < 0) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "충전할 금액은 음수일 수 없습니다.");
+        }
+
+        this.amount += amount;
+    }
+
+    public void use(Long amount) {
+        if (this.amount < amount) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "금액이 부족 합니다.");
+        }
+
+        this.amount -= amount;
     }
 }

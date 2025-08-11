@@ -8,11 +8,13 @@ public interface LikeRepository {
 
     LikeModel save(LikeModel like);
 
-    void delete(LikeModel like);
-
     Long count(Long target, LikeType type);
 
     boolean isExists(Long userId, Long target, LikeType type);
 
     Optional<LikeModel> find(Long userId, Long target, LikeType type);
+
+    void deleteWithLock(Long userId, Long targetId, LikeType likeType);
+
+    Optional<LikeModel> findWithLock(Long userId, Long target, LikeType type);
 }

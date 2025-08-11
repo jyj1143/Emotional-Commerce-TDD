@@ -23,6 +23,10 @@ import lombok.NoArgsConstructor;
 public class ProductSkuModel extends BaseEntity {
 
     @Embedded
+    @AttributeOverride(name = "amount", column = @Column(name = "price", nullable = false))
+    Money price; // 가격
+
+    @Embedded
     @AttributeOverride(name = "amount", column = @Column(name = "additional_price", nullable = false))
     Money additionalPrice; // 옵션에대한 추가 가격
 
@@ -35,16 +39,17 @@ public class ProductSkuModel extends BaseEntity {
     @Column(name = "ref_product_id", nullable = false)
     private Long refProductId;
 
-    private ProductSkuModel(Long additionalPrice, String optionType, String optionValue, SaleStatus saleStatus,
+    private ProductSkuModel(Long price, Long additionalPrice, String optionType, String optionValue, SaleStatus saleStatus,
         Long refProductId) {
+        this.price = Money.of(price);
         this.additionalPrice = Money.of(additionalPrice);
         this.option = ProductOption.of(optionType, optionValue);
         this.saleStatus = saleStatus;
         this.refProductId = refProductId;
     }
 
-    public static ProductSkuModel of(Long additionalPrice, String optionType, String optionValue
+    public static ProductSkuModel of(Long price,Long additionalPrice, String optionType, String optionValue
         , SaleStatus saleStatus, Long refProductId) {
-        return new ProductSkuModel(additionalPrice, optionType, optionValue, saleStatus, refProductId);
+        return new ProductSkuModel(price, additionalPrice, optionType, optionValue, saleStatus, refProductId);
     }
 }

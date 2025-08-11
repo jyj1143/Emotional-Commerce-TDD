@@ -15,6 +15,8 @@ public interface PointRepository {
 
     Optional<PointModel> findByUserId(Long userId);
 
+    Optional<PointModel> findWithLockByUserId(Long userId);
+
     Boolean existsByUserId(Long userId);
 
 }
