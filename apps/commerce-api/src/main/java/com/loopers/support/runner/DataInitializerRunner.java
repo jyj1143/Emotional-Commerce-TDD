@@ -1,6 +1,7 @@
 package com.loopers.support.runner;
 
 
+import com.loopers.support.runner.initializer.BrandInitializer;
 import com.loopers.support.runner.initializer.ProductInitializer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class DataInitializerRunner implements ApplicationRunner {
 
+    private final BrandInitializer brandInitializer;
     private final ProductInitializer productInitializer;
 
     @Override
@@ -22,6 +24,7 @@ public class DataInitializerRunner implements ApplicationRunner {
         log.info("더미 데이터 초기화 시작");
 
         try {
+            brandInitializer.bulkInsertBrandsWithMultiThreading();
             productInitializer.bulkInsertProductsWithMultiThreading();
             log.info("더미 데이터 초기화 완료");
         } catch (Exception e) {
