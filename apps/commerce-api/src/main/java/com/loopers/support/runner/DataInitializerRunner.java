@@ -2,6 +2,7 @@ package com.loopers.support.runner;
 
 
 import com.loopers.support.runner.initializer.BrandInitializer;
+import com.loopers.support.runner.initializer.LikeInitializer;
 import com.loopers.support.runner.initializer.ProductInitializer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,7 @@ public class DataInitializerRunner implements ApplicationRunner {
 
     private final BrandInitializer brandInitializer;
     private final ProductInitializer productInitializer;
+    private final LikeInitializer likeInitializer;
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
@@ -26,6 +28,7 @@ public class DataInitializerRunner implements ApplicationRunner {
         try {
             brandInitializer.bulkInsertBrandsWithMultiThreading();
             productInitializer.bulkInsertProductsWithMultiThreading();
+            likeInitializer.bulkInsertLikesWithMultiThreading();
             log.info("더미 데이터 초기화 완료");
         } catch (Exception e) {
             log.error("더미 데이터 생성 중 오류 발생", e);
