@@ -1,10 +1,9 @@
-package com.loopers.domain.product.dto.summary;
+package com.loopers.application.product.dto;
 
-
-import com.loopers.infrastructure.product.dto.ProductRow;
+import com.loopers.domain.product.dto.summary.ProductSummaryInfo;
 import java.time.LocalDate;
 
-public record ProductSummaryInfo(
+public record ProductSummaryResult (
     Long id,
     String name,
     Long salePrice,
@@ -12,11 +11,13 @@ public record ProductSummaryInfo(
     Long brandId,
     String brandName,
     Long likeCount
-) {
-    public static ProductSummaryInfo from(
-        ProductRow.ProductSummary productSummary
-    ) {
-        return new ProductSummaryInfo(
+){
+
+
+    public static ProductSummaryResult from(
+        ProductSummaryInfo productSummary
+    ){
+        return new ProductSummaryResult(
             productSummary.id(),
             productSummary.name(),
             productSummary.salePrice(),
@@ -26,4 +27,5 @@ public record ProductSummaryInfo(
             productSummary.likeCount()
         );
     }
+
 }

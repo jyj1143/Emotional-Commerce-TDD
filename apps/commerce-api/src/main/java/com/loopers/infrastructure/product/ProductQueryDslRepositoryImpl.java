@@ -66,12 +66,6 @@ public class ProductQueryDslRepositoryImpl {
                 likeModel.likeType.eq(LikeType.PRODUCT)
             )
             ;
-        // 좋아요 수를 계산하는 서브쿼리를 SQL 템플릿으로 감쌈
-//        NumberTemplate<Long> likeCount = Expressions.numberTemplate(
-//            Long.class,
-//            "(SELECT COUNT(*) FROM LikeModel l WHERE l.targetId = {0} AND l.likeType = 'PRODUCT')",
-//            productModel.id
-//        );
 
         JPAQuery<ProductSummaryInfo> query = queryFactory.select(
                 Projections.constructor(
