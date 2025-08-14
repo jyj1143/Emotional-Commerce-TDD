@@ -2,11 +2,7 @@ package com.loopers.domain.product.entity;
 
 import com.loopers.domain.BaseEntity;
 import com.loopers.domain.common.vo.PositiveCount;
-import jakarta.persistence.AttributeOverride;
-import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,7 +10,10 @@ import lombok.NoArgsConstructor;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@Table(name = "product_signal")
+@Table(name = "product_signal",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"ref_product_id"})
+        })
 public class ProductSignalModel extends BaseEntity {
 
     @Column(name = "ref_product_id", nullable = false)

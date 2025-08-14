@@ -21,8 +21,8 @@ public class LikeInitializer {
     private final JdbcTemplate jdbcTemplate;
     private static final int THREAD_COUNT = 4;
     private static final int BATCH_SIZE = 1_000;
-    private static final int PRODUCT_COUNT = 1_000_000;
-    private static final int USER_COUNT = 100_000;
+    private static final int PRODUCT_COUNT = 100_000;
+    private static final int USER_COUNT = 500_000;
     private static final int LIKE_COUNT = 1_000_000;
     private static final String LIKE_INSERT_SQL =
         "INSERT INTO likes (id, ref_user_id, ref_target_id, like_type, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?) " +
