@@ -18,9 +18,9 @@ import java.util.function.Consumer;
 @Configuration
 @EnableConfigurationProperties(RedisProperties.class)
 public class RedisConfig {
-
     private static final String CONNECTION_MASTER = "redisConnectionMaster";
     public static final String REDIS_TEMPLATE_MASTER = "redisTemplateMaster";
+    private static final StringRedisSerializer STRING_SERIALIZER = new StringRedisSerializer();
 
     private final RedisProperties redisProperties;
 
@@ -36,8 +36,8 @@ public class RedisConfig {
         List<RedisNodeInfo> replicas = redisProperties.getReplicas();
 
         return lettuceConnectionFactory(
-                database, master, replicas,
-                b -> b.readFrom(ReadFrom.REPLICA_PREFERRED)
+            database, master, replicas,
+            b -> b.readFrom(ReadFrom.REPLICA_PREFERRED) // 리플리카 우선 읽기
         );
     }
 
@@ -49,8 +49,8 @@ public class RedisConfig {
         List<RedisNodeInfo> replicas = redisProperties.getReplicas();
 
         return lettuceConnectionFactory(
-                database, master, replicas,
-                b -> b.readFrom(ReadFrom.MASTER)
+            database, master, replicas,
+            b -> b.readFrom(ReadFrom.MASTER) // 마스터 전용 읽기/쓰기
         );
     }
 
@@ -58,34 +58,40 @@ public class RedisConfig {
     @Bean
     public RedisTemplate<String, String> defaultRedisTemplate(LettuceConnectionFactory lettuceConnectionFactory) {
         RedisTemplate<String, String> template = new RedisTemplate<>();
-        return defaultRedisTemplate(template, lettuceConnectionFactory);
+        return configureRedisTemplate(template, lettuceConnectionFactory);
     }
 
     @Bean
     @Qualifier(REDIS_TEMPLATE_MASTER)
     public RedisTemplate<String, String> masterRedisTemplate(
-            @Qualifier(CONNECTION_MASTER) LettuceConnectionFactory lettuceConnectionFactory
+        @Qualifier(CONNECTION_MASTER) LettuceConnectionFactory lettuceConnectionFactory
     ) {
         RedisTemplate<String, String> template = new RedisTemplate<>();
-        return defaultRedisTemplate(template, lettuceConnectionFactory);
+        return configureRedisTemplate(template, lettuceConnectionFactory);
     }
 
     private LettuceConnectionFactory lettuceConnectionFactory(
-            int database,
-            RedisNodeInfo master,
-            List<RedisNodeInfo> replicas,
-            Consumer<LettuceClientConfiguration.LettuceClientConfigurationBuilder> customizer
+        int database,
+        RedisNodeInfo master,
+        List<RedisNodeInfo> replicas,
+        Consumer<LettuceClientConfiguration.LettuceClientConfigurationBuilder> customizer
     ) {
+        // 1. Lettuce 클라이언트 설정 빌더 생성
         LettuceClientConfiguration.LettuceClientConfigurationBuilder builder =
-                LettuceClientConfiguration.builder();
+            LettuceClientConfiguration.builder();
+
+        // 2. 커스터마이저 적용 (ReadFrom 전략 등)
         if (customizer != null) {
             customizer.accept(builder);
         }
         LettuceClientConfiguration clientConfig = builder.build();
 
+        // 3. Master-Replica 구성 설정
         RedisStaticMasterReplicaConfiguration masterReplica =
-                new RedisStaticMasterReplicaConfiguration(master.getHost(), master.getPort());
+            new RedisStaticMasterReplicaConfiguration(master.getHost(), master.getPort());
         masterReplica.setDatabase(database);
+
+        // 4. 리플리카 노드들 추가
         if (replicas != null) {
             for (RedisNodeInfo r : replicas) {
                 masterReplica.addNode(r.getHost(), r.getPort());
@@ -94,15 +100,17 @@ public class RedisConfig {
         return new LettuceConnectionFactory(masterReplica, clientConfig);
     }
 
-    private <K, V> RedisTemplate<K, V> defaultRedisTemplate(
-            RedisTemplate<K, V> template,
-            LettuceConnectionFactory connectionFactory
+    private <K, V> RedisTemplate<K, V> configureRedisTemplate(
+        RedisTemplate<K, V> template,
+        LettuceConnectionFactory connectionFactory
     ) {
-        StringRedisSerializer string = new StringRedisSerializer();
-        template.setKeySerializer(string);
-        template.setValueSerializer(string);
-        template.setHashKeySerializer(string);
-        template.setHashValueSerializer(string);
+        // 모든 시리얼라이저를 String으로 통일
+        template.setKeySerializer(STRING_SERIALIZER);
+        template.setValueSerializer(STRING_SERIALIZER);
+        template.setHashKeySerializer(STRING_SERIALIZER);
+        template.setHashValueSerializer(STRING_SERIALIZER);
+
+        // 연결 팩토리 설정
         template.setConnectionFactory(connectionFactory);
         template.afterPropertiesSet();
         return template;
