@@ -1,7 +1,9 @@
 package com.loopers.domain.product.service;
 
 import com.loopers.application.product.ProductFacade;
+import com.loopers.application.product.dto.ProductCriteria;
 import com.loopers.application.product.dto.ProductInfo;
+import com.loopers.application.product.dto.ProductResult;
 import com.loopers.domain.brand.entity.BrandModel;
 import com.loopers.domain.brand.repository.BrandRepository;
 import com.loopers.domain.like.LikeModel;
@@ -64,7 +66,7 @@ public class ProductFacadeIntegrationTest {
 
 
             // when
-            ProductInfo productDetail = productFacade.getProductDetail(first.getId());
+            ProductResult productDetail = productFacade.getProductDetail(new ProductCriteria.GetProduct(first.getId())  );
             assertAll(
                     () -> assertThat(productDetail.id()).isEqualTo(first.getId()),
                     () -> assertThat(productDetail.brandId()).isEqualTo(brandModel.getId()),
