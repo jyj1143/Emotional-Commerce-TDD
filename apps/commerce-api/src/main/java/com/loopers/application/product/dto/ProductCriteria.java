@@ -17,4 +17,11 @@ public record ProductCriteria (
             return new ProductCommand.ProductSummary(page, size, sortType, sortOrder);
         }
     }
+
+    public record GetProduct(Long productId) {
+
+        public ProductCommand.GetProduct toProductCommand() {
+            return new ProductCommand.GetProduct(productId);
+        }
+    }
 }

@@ -1,6 +1,7 @@
 package com.loopers.interfaces.api.product;
 
 import com.loopers.application.product.dto.ProductCriteria;
+import com.loopers.application.product.dto.ProductResult;
 import com.loopers.application.product.dto.ProductSummaryResult;
 import com.loopers.domain.product.dto.summary.ProductSummaryInfo;
 import com.loopers.domain.product.enums.ProductSortType;
@@ -73,6 +74,28 @@ public class ProductV1Dto {
                     .map(GetProductSummaryResponse::from)
                     .toList(),
                 productSummary.paginationInfo()
+            );
+        }
+    }
+
+    public record GetResponse(
+        Long id,
+        String name,
+        Long price,
+        String status,
+        Long brandId,
+        String brandName,
+        Long likeCount
+    ) {
+        public static GetResponse from(ProductResult result) {
+            return new GetResponse(
+                result.id(),
+                result.name(),
+                result.price(),
+                result.status(),
+                result.brandId(),
+                result.brandName(),
+                result.likeCount()
             );
         }
     }

@@ -1,9 +1,12 @@
 package com.loopers.interfaces.api.product;
 
 import com.loopers.application.product.ProductFacade;
+import com.loopers.application.product.dto.ProductCriteria.GetProduct;
+import com.loopers.application.product.dto.ProductResult;
 import com.loopers.application.product.dto.ProductSummaryResult;
 import com.loopers.interfaces.api.ApiResponse;
 import com.loopers.interfaces.api.product.ProductV1Dto.GetProductSummaryRequest;
+import com.loopers.interfaces.api.product.ProductV1Dto.GetResponse;
 import com.loopers.interfaces.api.product.ProductV1Dto.SearchProductSummaryResponse;
 import com.loopers.support.pagenation.PageResult;
 import lombok.RequiredArgsConstructor;
@@ -24,5 +27,13 @@ public class ProductV1ApiController implements ProductV1ApiSpec{
         GetProductSummaryRequest request) {
         PageResult<ProductSummaryResult> productSummary = productFacade.findAllProductSummary(request.toProductCriteria());
         return ApiResponse.success(SearchProductSummaryResponse.from(productSummary));
+    }
+
+    @Override
+    public ApiResponse<GetResponse> getProductDetail(Long productId) {
+        ProductResult productDetail = productFacade.getProductDetail(
+            new GetProduct(productId)
+        );
+        return ApiResponse.success(ProductV1Dto.GetResponse.from(productDetail));
     }
 }
