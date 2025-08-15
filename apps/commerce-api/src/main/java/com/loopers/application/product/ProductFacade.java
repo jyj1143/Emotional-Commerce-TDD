@@ -64,9 +64,11 @@ public class ProductFacade {
         PageResult<ProductSummaryInfo> productSummaryPageResult =
             productCacheRepository.findProductSummary(command)
                 .orElseGet(() -> {
+                    // 캐시 미스 시 DB 조회
                     PageResult<ProductSummaryInfo> result =
-                        productSummaryService.findAllFromDenormalized(command);
+                        productSummaryService.findAll(command);
 
+                    // 조회 결과를 캐시에 저장
                     productCacheRepository.saveProductSummary(command, result);
 
                     return result;
