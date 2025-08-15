@@ -67,12 +67,12 @@ public class ProductQueryDslRepositoryImpl {
                     productModel.saleDate.saleDate,
                     brandModel.id,
                     brandModel.name.name,
-                    productSignalModel.likeCount.count.coalesce(0L)
+                    productSignalModel.likeCount.count
                 )
             )
             .from(productModel)
             .leftJoin(brandModel).on(productModel.refBrandId.eq(brandModel.id))
-            .leftJoin(productSignalModel).on(productModel.id.eq(productSignalModel.refProductId))
+            .join(productSignalModel).on(productModel.id.eq(productSignalModel.refProductId))
             .orderBy(sortByField(criteria))
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize());
@@ -95,7 +95,7 @@ public class ProductQueryDslRepositoryImpl {
         }
 
         if (productSortType == ProductSortType.LIKE) {
-            return new OrderSpecifier<>(order, productSignalModel.likeCount.count.coalesce(0L));
+            return new OrderSpecifier<>(order, productSignalModel.likeCount.count);
         }
         return new OrderSpecifier<>(Order.DESC, productModel.id);
     }
