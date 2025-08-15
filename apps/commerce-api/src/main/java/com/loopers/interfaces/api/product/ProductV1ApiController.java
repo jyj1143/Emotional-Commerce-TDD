@@ -29,6 +29,7 @@ public class ProductV1ApiController implements ProductV1ApiSpec{
         return ApiResponse.success(SearchProductSummaryResponse.from(productSummary));
     }
 
+    @GetMapping("/{productId}")
     @Override
     public ApiResponse<GetResponse> getProductDetail(Long productId) {
         ProductResult productDetail = productFacade.getProductDetail(

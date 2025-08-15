@@ -36,12 +36,12 @@ public class ProductSummaryDenormalizedQueryDslRepository {
                 Projections.constructor(
                     ProductRow.ProductSummary.class,
                     productSummaryModel.id,
-                    productSummaryModel.productName,
-                    productSummaryModel.salePrice,
-                    productSummaryModel.saleDate,
+                    productSummaryModel.productName.name,
+                    productSummaryModel.salePrice.amount,
+                    productSummaryModel.saleDate.saleDate,
                     productSummaryModel.refBrandId,
-                    productSummaryModel.brandName,
-                    productSummaryModel.likeCount
+                    productSummaryModel.brandName.name,
+                    productSummaryModel.likeCount.count
                 )
             )
             .from(productSummaryModel)
