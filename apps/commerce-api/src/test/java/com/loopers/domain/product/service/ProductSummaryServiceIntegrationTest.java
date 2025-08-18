@@ -146,8 +146,6 @@ class ProductSummaryServiceIntegrationTest {
                 Comparator.reverseOrder()
             ));
         }
-
-
     }
 
 }

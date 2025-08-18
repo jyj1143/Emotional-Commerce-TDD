@@ -32,7 +32,6 @@ public class LikeService {
             // 이 예외는 롤백되지 않음 (noRollbackFor 설정)
            return;
         }
-
     }
 
     @Transactional

@@ -14,4 +14,5 @@ public class ProductCommand {
 
     }
 
+    public record GetProduct(Long id) {}
 }

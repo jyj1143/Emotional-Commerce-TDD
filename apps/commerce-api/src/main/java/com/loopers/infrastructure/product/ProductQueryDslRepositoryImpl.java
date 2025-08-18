@@ -6,6 +6,7 @@ import com.loopers.domain.like.enums.LikeType;
 import com.loopers.domain.product.dto.product.ProductCommand;
 import com.loopers.domain.product.dto.summary.ProductSummaryInfo;
 import com.loopers.domain.product.entity.QProductModel;
+import com.loopers.domain.product.entity.QProductSignalModel;
 import com.loopers.domain.product.enums.ProductSortType;
 import com.loopers.infrastructure.product.dto.ProductInfo.ProductWithBrand;
 import com.loopers.support.pagenation.PageResult;
@@ -31,7 +32,7 @@ public class ProductQueryDslRepositoryImpl {
     private final JPAQueryFactory queryFactory;
     private static final QProductModel productModel = QProductModel.productModel;
     private static final QBrandModel brandModel = QBrandModel.brandModel;
-    private static final QLikeModel likeModel = QLikeModel.likeModel;
+    private static final QProductSignalModel productSignalModel = QProductSignalModel.productSignalModel;
 
 
     public List<ProductWithBrand> findProductWithBrand() {
@@ -57,22 +58,6 @@ public class ProductQueryDslRepositoryImpl {
                 , criteria.size()
             );
 
-        // 좋아요 수를 계산하는 서브쿼리
-        JPQLQuery<Long> likeCount = JPAExpressions
-            .select(likeModel.count())
-            .from(likeModel)
-            .where(
-                likeModel.targetId.eq(productModel.id),
-                likeModel.likeType.eq(LikeType.PRODUCT)
-            )
-            ;
-        // 좋아요 수를 계산하는 서브쿼리를 SQL 템플릿으로 감쌈
-//        NumberTemplate<Long> likeCount = Expressions.numberTemplate(
-//            Long.class,
-//            "(SELECT COUNT(*) FROM LikeModel l WHERE l.targetId = {0} AND l.likeType = 'PRODUCT')",
-//            productModel.id
-//        );
-
         JPAQuery<ProductSummaryInfo> query = queryFactory.select(
                 Projections.constructor(
                     ProductSummaryInfo.class,
@@ -82,12 +67,13 @@ public class ProductQueryDslRepositoryImpl {
                     productModel.saleDate.saleDate,
                     brandModel.id,
                     brandModel.name.name,
-                    likeCount
+                    productSignalModel.likeCount.count
                 )
             )
             .from(productModel)
             .leftJoin(brandModel).on(productModel.refBrandId.eq(brandModel.id))
-            .orderBy(sortByField(criteria, likeCount))
+            .join(productSignalModel).on(productModel.id.eq(productSignalModel.refProductId))
+            .orderBy(sortByField(criteria))
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize());
 
@@ -97,7 +83,7 @@ public class ProductQueryDslRepositoryImpl {
         return PageResult.of(pageResult);
     }
 
-    private OrderSpecifier<?> sortByField(ProductCommand.ProductSummary criteria,  JPQLQuery<Long> likeCount) {
+    private OrderSpecifier<?> sortByField(ProductCommand.ProductSummary criteria) {
         Order order = Order.valueOf(criteria.sortOrder().name());
         ProductSortType productSortType = criteria.sortType();
         if (productSortType == ProductSortType.LATEST) {
@@ -109,7 +95,7 @@ public class ProductQueryDslRepositoryImpl {
         }
 
         if (productSortType == ProductSortType.LIKE) {
-            return new OrderSpecifier<>(order, likeCount);
+            return new OrderSpecifier<>(order, productSignalModel.likeCount.count);
         }
         return new OrderSpecifier<>(Order.DESC, productModel.id);
     }

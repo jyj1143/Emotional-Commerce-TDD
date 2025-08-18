@@ -9,6 +9,7 @@ import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -28,7 +29,7 @@ public class ProductModel extends BaseEntity {
     @AttributeOverride(name = "amount", column = @Column(name = "sale_price", nullable = false))
     private Money salePrice;
 
-    @Enumerated
+    @Enumerated(EnumType.STRING)
     private SaleStatus saleStatus;
 
     private SaleDate saleDate;
