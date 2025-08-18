@@ -10,8 +10,8 @@ public class ProductDataGenerator {
     private static final String[] SALE_STATUSES = {"ON_SALE", "SOLD_OUT", "STOP_SALE"};
     private static final long ONE_YEAR_IN_MILLIS = 365L * 24 * 60 * 60 * 1000;
     private static final int MIN_PRICE_MULTIPLIER = 1;
-    private static final int MAX_PRICE_RANGE = 990;
-    private static final long BASE_PRICE = 1_000L;
+    private static final int MAX_PRICE_RANGE = 99990;
+    private static final long BASE_PRICE = 10L;
 
     public long generateRandomId(int bound) {
         return random.nextInt(bound) + 1;
