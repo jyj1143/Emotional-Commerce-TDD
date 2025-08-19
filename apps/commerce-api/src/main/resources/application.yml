@@ -29,6 +29,11 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
 
+
+pg: ## ### PG(Payment Gateway) 설정
+  service-url: http://localhost:8082 # PG 서비스 API URL
+  callback-url: http://localhost:8082/api/v1/payment/callback # 결제 처리 후 PG 서비스가 결과를 전송할 콜백 URL
+
 ---
 spring:
   config:

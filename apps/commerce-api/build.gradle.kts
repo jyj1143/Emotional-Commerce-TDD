@@ -19,4 +19,8 @@ dependencies {
     // test-fixtures
     testImplementation(testFixtures(project(":modules:jpa")))
     testImplementation(testFixtures(project(":modules:redis")))
+
+    // Feign Client
+    implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
+
 }
