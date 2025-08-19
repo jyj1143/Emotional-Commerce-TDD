@@ -22,12 +22,11 @@ import lombok.NoArgsConstructor;
 public class PaymentModel extends BaseEntity {
 
     @Column(name = "ref_order_id", nullable = false)
-    Long refOrderId; // 주문 ID
+    private Long refOrderId; // 주문 ID
 
     @Column(name = "payment_method", nullable = false)
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
-
 
     @Column(name = "payment_status", nullable = false)
     @Enumerated(EnumType.STRING)
@@ -58,6 +57,10 @@ public class PaymentModel extends BaseEntity {
     }
 
     public void complete(){
+        this.paymentStatus = PaymentStatus.COMPLETED;
+    }
+
+    public void fail() {
         this.paymentStatus = PaymentStatus.COMPLETED;
     }
 
