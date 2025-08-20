@@ -13,6 +13,7 @@ import com.loopers.domain.coupone.repository.CouponRepository;
 import com.loopers.domain.coupone.service.CouponService;
 import com.loopers.domain.inventory.InventoryModel;
 import com.loopers.domain.inventory.repository.InventoryRepository;
+import com.loopers.domain.payment.enums.PaymentMethod;
 import com.loopers.domain.point.PointModel;
 import com.loopers.domain.point.repository.PointRepository;
 import com.loopers.domain.point.service.PointService;
@@ -129,7 +130,8 @@ public class OrderFacadeIntegrationTest {
             OrderCriteria.Order orderCriteria = new OrderCriteria.Order(
                 USER_ID,
                 List.of(new OrderCriteria.Order.OrderItem(productSku.getId(), 1L)),
-                couponId
+                couponId,
+                PaymentMethod.POINT
             );
 
             // When
@@ -169,7 +171,8 @@ public class OrderFacadeIntegrationTest {
             OrderCriteria.Order orderCriteria = new OrderCriteria.Order(
                 USER_ID,
                 List.of(new OrderCriteria.Order.OrderItem(productSku.getId(), 1L)),
-                couponId
+                couponId,
+                PaymentMethod.POINT
             );
 
             // When & Then
@@ -193,7 +196,8 @@ public class OrderFacadeIntegrationTest {
             OrderCriteria.Order orderCriteria = new OrderCriteria.Order(
                 USER_ID,
                 List.of(new OrderCriteria.Order.OrderItem(productSku.getId(), INITIAL_INVENTORY + 1)),
-                null
+                null,
+                PaymentMethod.POINT
             );
 
             // When & Then
@@ -220,7 +224,8 @@ public class OrderFacadeIntegrationTest {
             OrderCriteria.Order orderCriteria = new OrderCriteria.Order(
                 USER_ID,
                 List.of(new OrderCriteria.Order.OrderItem(productSku.getId(), 1L)),
-                null
+                null,
+                PaymentMethod.POINT
             );
 
             // When & Then
@@ -248,7 +253,8 @@ public class OrderFacadeIntegrationTest {
             OrderCriteria.Order orderCriteria = new OrderCriteria.Order(
                 USER_ID,
                 List.of(new OrderCriteria.Order.OrderItem(productSku.getId(), 1L)),
-                nonExistentCouponId
+                nonExistentCouponId,
+                PaymentMethod.POINT
             );
 
             // When & Then
@@ -274,7 +280,8 @@ public class OrderFacadeIntegrationTest {
             OrderCriteria.Order orderCriteria = new OrderCriteria.Order(
                 USER_ID,
                 List.of(new OrderCriteria.Order.OrderItem(nonExistentProductId, 1L)),
-                null
+                null,
+                PaymentMethod.POINT
             );
 
             // When & Then

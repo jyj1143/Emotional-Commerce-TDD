@@ -1,6 +1,7 @@
 package com.loopers.application.order.dto;
 
 import com.loopers.domain.order.dto.OrderCommand;
+import com.loopers.domain.payment.enums.PaymentMethod;
 import com.loopers.domain.product.dto.sku.ProductSkuCommand;
 import com.loopers.domain.product.dto.sku.ProductSkuInfo;
 import java.util.List;
@@ -12,7 +13,8 @@ public record OrderCriteria() {
     public record Order(
         Long userId,
         List<OrderItem> orderItems,
-        Long couponId
+        Long couponId,
+        PaymentMethod paymentMethod
     ) {
 
         public OrderCommand.Order toOrderCommand(List<ProductSkuInfo> productSkuInfos) {

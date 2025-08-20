@@ -4,13 +4,17 @@ import com.loopers.domain.BaseEntity;
 import com.loopers.domain.common.vo.Money;
 import com.loopers.domain.payment.enums.CardType;
 import com.loopers.domain.payment.enums.PaymentStatus;
+import com.loopers.domain.payment.vo.CardNumber;
+import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -19,6 +23,9 @@ import lombok.NoArgsConstructor;
 @Table(name = "payment_gateway_transaction")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PaymentGatewayTransactionModel extends BaseEntity {
+
+    @Column(name = "store_id", nullable = false, updatable = false)
+    private Long storeId; // 파트너사 ID
 
     @Column(name = "ref_order_id", nullable = false)
     private Long refOrderId; // 주문 ID
@@ -33,28 +40,30 @@ public class PaymentGatewayTransactionModel extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus;
 
-    @Column(name = "amount", nullable = false)
+    @Embedded
     private Money amount; // 결제 금액
 
     @Enumerated(EnumType.STRING)
     private CardType cardType;
 
+    @Embedded
+    private CardNumber cardNumber;
+
     @Column(name = "payment_date", nullable = false)
     LocalDateTime paymentDate = LocalDateTime.now(); // 결제 일시
 
-    private PaymentGatewayTransactionModel(Long refOrderId, Long refPaymentId, String transactionKey,
-        PaymentStatus paymentStatus, Long amount, CardType cardType, LocalDateTime paymentDate) {
+    @Builder
+    public PaymentGatewayTransactionModel(Long storeId, Long refOrderId, Long refPaymentId,
+        String transactionKey, PaymentStatus paymentStatus, Money amount, CardType cardType,
+        CardNumber cardNumber, LocalDateTime paymentDate) {
+        this.storeId = storeId;
         this.refOrderId = refOrderId;
         this.refPaymentId = refPaymentId;
         this.transactionKey = transactionKey;
         this.paymentStatus = paymentStatus;
-        this.amount = Money.of(amount);
+        this.amount = amount;
         this.cardType = cardType;
-    }
-
-    public static PaymentGatewayTransactionModel of(Long refOrderId, Long refPaymentId, String transactionKey,
-        PaymentStatus paymentStatus, Long amount, CardType cardType, LocalDateTime paymentDate) {
-        return new PaymentGatewayTransactionModel(refOrderId, refPaymentId, transactionKey, paymentStatus, amount, cardType,
-            paymentDate);
+        this.cardNumber = cardNumber;
+        this.paymentDate = paymentDate;
     }
 }

@@ -22,4 +22,11 @@ public class PaymentService {
         return paymentModel;
     }
 
+    @Transactional
+    public PaymentModel ready(PaymentCommand.Pay command) {
+        PaymentModel paymentModel = PaymentModel.of(command.orderId(), command.method(), PaymentStatus.PENDING, command.amount());
+        paymentRepository.save(paymentModel);
+        return paymentModel;
+    }
+
 }

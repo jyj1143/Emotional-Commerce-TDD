@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@Profile("local")
+@Profile("test-local")
 @RequiredArgsConstructor
 public class DataInitializerRunner implements ApplicationRunner {
 

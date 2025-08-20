@@ -2,6 +2,8 @@ package com.loopers.application.order;
 
 import com.loopers.application.order.dto.OrderCriteria;
 import com.loopers.application.order.dto.OrderResult;
+import com.loopers.application.payment.dto.PaymentCriteria;
+import com.loopers.application.payment.strategy.PaymentContext;
 import com.loopers.domain.coupone.dto.CouponCommand;
 import com.loopers.domain.coupone.service.CouponService;
 import com.loopers.domain.inventory.dto.InventoryCommand;
@@ -30,6 +32,7 @@ public class OrderFacade {
     private final PointService pointService;
     private final ProductSkuService productSkuService;
     private final CouponService couponService;
+    private final PaymentContext paymentContext;
 
     @Transactional
     public OrderResult order(OrderCriteria.Order criteria) {
@@ -43,9 +46,6 @@ public class OrderFacade {
         // 쿠폰 적용 및 최종 결제금액
         Long finalPrice = getFinalPrice(criteria, orderInfo);
 
-        // 포인트 사용
-        pointService.usePoint(new UsePoint(criteria.userId(), finalPrice));
-
         // 재고 감소
         criteria.orderItems().forEach(item ->
             inventoryService.decrease(new InventoryCommand.DecreaseStock(
@@ -53,15 +53,18 @@ public class OrderFacade {
                 item.quantity()))
         );
 
-        // 결제 처리
-        paymentService.pay(new PaymentCommand.Pay(
-            orderInfo.id(),
-            PaymentMethod.POINT,
-            finalPrice
-        ));
-
         // 주문 완료
         OrderInfo successOrder = orderService.completeOrder(orderInfo.id());
+
+        paymentContext.pay(
+            new PaymentCriteria.Pay(
+                criteria.userId(),
+                orderInfo.id(),
+                criteria.paymentMethod(),
+                finalPrice
+            )
+        );
+
 
         return OrderResult.from(successOrder);
     }
