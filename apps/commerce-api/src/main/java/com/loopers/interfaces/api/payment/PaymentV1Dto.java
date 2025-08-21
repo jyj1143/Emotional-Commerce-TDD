@@ -38,6 +38,16 @@ public class PaymentV1Dto {
         }
     }
 
+    public record CallbackRequest(
+            String transactionKey,
+            String orderId,
+            CardTypeDto cardType,
+            String cardNo,
+            Long amount,
+            PaymentStatusDto status,
+            String reason
+    ){}
+
 
     public enum CardTypeDto {
         SAMSUNG,
