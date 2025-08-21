@@ -4,14 +4,19 @@ import com.loopers.domain.payment.adapter.PaymentGatewayCommand;
 import com.loopers.domain.payment.dto.PaymentCommand;
 import com.loopers.domain.payment.enums.CardType;
 import com.loopers.domain.payment.enums.PaymentMethod;
+import com.loopers.domain.payment.enums.PaymentStatus;
+import com.loopers.interfaces.api.payment.PaymentV1Dto.CardTypeDto;
+import com.loopers.interfaces.api.payment.PaymentV1Dto.PaymentStatusDto;
 
 public record PaymentCriteria() {
+
     public record Pay(
         Long userId,
         Long orderId,
         PaymentMethod paymentMethod,
         Long amount
-    ){
+    ) {
+
         public PaymentCommand.Pay toPaymentCommand() {
             return new PaymentCommand.Pay(orderId, paymentMethod, amount);
         }
@@ -23,8 +28,24 @@ public record PaymentCriteria() {
         String cardNo,
         Long amount
     ) {
+
         public PaymentGatewayCommand.Payment toPaymentCommand() {
             return new PaymentGatewayCommand.Payment(orderId, cardType, cardNo, amount);
+        }
+    }
+
+    public record Synchronize(
+        String transactionKey,
+        String orderId,
+        CardType cardType,
+        String cardNo,
+        Long amount,
+        PaymentStatus status,
+        String reason
+    ) {
+        public PaymentCommand.Synchronize toPaymentCommand(
+        ) {
+            return new PaymentCommand.Synchronize(transactionKey, orderId, cardType, cardNo, amount, status, reason;
         }
     }
 }

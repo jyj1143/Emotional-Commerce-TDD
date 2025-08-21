@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@FeignClient(url = "${pg.service-url}", name = "pgV1Client", configuration = PaymentClientConfig.class)
+@FeignClient(url = "${pg-simulator.service-url}", name = "pgV1Client", configuration = PaymentClientConfig.class)
 public interface PgV1Client {
 
     @PostMapping("/api/v1/payments")

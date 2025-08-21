@@ -1,7 +1,8 @@
 package com.loopers.application.payment.strategy;
 
-import com.loopers.application.payment.dto.PaymentCriteria;
 import com.loopers.application.payment.dto.PaymentResult;
+import com.loopers.application.payment.strategy.condition.PointPaymentCondition;
+import com.loopers.domain.payment.dto.PaymentCommand;
 import com.loopers.domain.payment.enums.PaymentMethod;
 import com.loopers.domain.payment.service.PaymentService;
 import com.loopers.domain.point.service.PointService;
@@ -11,23 +12,17 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class PointPaymentStrategy implements PaymentStrategy {
+public class PointPaymentStrategy implements PaymentStrategy<PointPaymentCondition> {
 
     private final PaymentService paymentService;
     private final PointService pointService;
 
     @Override
-    public boolean supports(PaymentMethod paymentMethod) {
-        return paymentMethod == PaymentMethod.POINT;
-    }
-
-    @Override
-    public PaymentResult pay(PaymentCriteria.Pay criteria) {
+    public PaymentResult pay(PointPaymentCondition condition) {
         // 포인트 사용
-        pointService.usePoint(new UsePoint(criteria.userId(), criteria.amount()));
+        pointService.usePoint(new UsePoint(condition.getUserId(), condition.getAmount()));
         // 결제 처리
-        paymentService.pay(criteria.toPaymentCommand());
+        paymentService.pay(new PaymentCommand.Pay(condition.getOrderId(), PaymentMethod.POINT, condition.getAmount()));
         return null;
     }
-
 }

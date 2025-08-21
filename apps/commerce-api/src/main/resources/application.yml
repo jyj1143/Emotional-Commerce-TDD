@@ -30,7 +30,7 @@ springdoc:
     path: /swagger-ui.html
 
 
-pg-simulator: ## ### PG(Payment Gateway) 설정
+pg-simulator: # PG(Payment Gateway) 설정
   service-url: http://localhost:8082 # PG 서비스 API URL
   callback-url: http://localhost:8080/api/v1/payments/callback # 결제 처리 후 PG 서비스가 결과를 전송할 콜백 URL
   store-id: ${spring.application.name} # 상점 ID, 서비스 이름을 사용
