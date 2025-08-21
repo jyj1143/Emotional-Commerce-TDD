@@ -67,4 +67,8 @@ public class PaymentGatewayTransactionModel extends BaseEntity {
         this.paymentDate = LocalDateTime.now();
     }
 
+    public void updateStatus(PaymentStatus paymentStatus){
+        this.paymentStatus = paymentStatus;
+    }
+
 }
