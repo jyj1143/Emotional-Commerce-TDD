@@ -1,3 +1,4 @@
+
 package com.loopers.infrastructure.external.payment.client;
 
 import com.loopers.domain.payment.adapter.PaymentGatewayAdapter;
@@ -8,6 +9,8 @@ import com.loopers.domain.payment.adapter.PaymentGatewayInfo.TransactionDetail;
 import com.loopers.infrastructure.external.payment.dto.PgClientV1Dto;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,86 +27,73 @@ public class PaymentGatewaySimulator implements PaymentGatewayAdapter {
     @Value("${pg-simulator.store-id}")
     private String storeId;
 
+    @Retry(name = "paymentRetry", fallbackMethod = "processPaymentFallback")
+    @CircuitBreaker(name = "paymentCircuitBreaker", fallbackMethod = "processPaymentFallback")
     @Override
     public Transaction processPayment(Payment command) {
-
         PgClientV1Dto.PaymentRequest request = new PgClientV1Dto.PaymentRequest(
-                command.orderId(),
-                command.cardType().name(),
-                command.cardNo(),
-                command.amount(),
-                callbackUrl
+            command.orderId(),
+            command.cardType().name(),
+            command.cardNo(),
+            command.amount(),
+            callbackUrl
         );
-        try {
-            // PG 클라이언트 호출 및 응답 처리
-            PaymentClientApiResponse<PgClientV1Dto.TransactionResponse> response = pgV1Client.processPayment(storeId, request);
-            PgClientV1Dto.TransactionResponse transactionResponse = response.data();
-            return transactionResponse.toTransaction();
-        } catch (PaymentClientException e) {
-            log.error("결제 처리 실패 - Status: {}, Type: {}, Message: {}",
-                    e.getHttpStatus(), e.getErrorType(), e.getCustomMessage());
-            // HTTP 상태에 따른 추가 처리
-            if (e.getHttpStatus().is4xxClientError()) {
-                // 클라이언트 에러 처리 - 일반적으로 재시도하지 않음
-                throw new CoreException(ErrorType.BAD_REQUEST,
-                        "결제 요청이 올바르지 않습니다: " + e.getCustomMessage());
-            } else if (e.getHttpStatus().is5xxServerError()) {
-                // 서버 에러 처리 - 재시도 가능한 에러
-                throw new CoreException(ErrorType.INTERNAL_ERROR,
-                        "결제 서비스에 일시적인 문제가 발생했습니다. 잠시 후 다시 시도해주세요.");
-            }
-            // 기타 에러
-            throw new CoreException(ErrorType.INTERNAL_ERROR,
-                    "결제 처리 중 알 수 없는 오류가 발생했습니다.");
-        }
+        // PG 클라이언트 호출 및 응답 처리
+        PaymentClientApiResponse<PgClientV1Dto.TransactionResponse> response = pgV1Client.processPayment(storeId, request);
+        PgClientV1Dto.TransactionResponse transactionResponse = response.data();
+        return transactionResponse.toTransaction();
     }
 
+    public Transaction processPaymentFallback(Payment command, Throwable t) {
+        log.error("결제 처리 실패 - 폴백 메소드 실행: {}", t.getMessage());
+        if (t instanceof PaymentClientException e) {
+            if (e.getHttpStatus().is4xxClientError()) {
+                throw new CoreException(ErrorType.BAD_REQUEST,
+                    "결제 요청이 올바르지 않습니다: " + e.getCustomMessage());
+            }
+        }
+        throw new CoreException(ErrorType.INTERNAL_ERROR,
+            "결제 서비스에 일시적인 문제가 발생했습니다. 잠시 후 다시 시도해주세요.");
+    }
+
+    @Retry(name = "transactionRetry", fallbackMethod = "getTransactionFallback")
+    @CircuitBreaker(name = "transactionCircuitBreaker", fallbackMethod = "getTransactionFallback")
     @Override
     public TransactionDetail getTransaction(String transactionKey) {
-        try {
-            PaymentClientApiResponse<PgClientV1Dto.TransactionDetailResponse> response = pgV1Client.getTransaction(storeId, transactionKey);
-            return response.data().toTransactionDetail();
-        } catch (PaymentClientException e) {
-            log.error("결제 정보 조회 실패 - Status: {}, Type: {}, Message: {}",
-                    e.getHttpStatus(), e.getErrorType(), e.getCustomMessage());
-            // HTTP 상태에 따른 추가 처리
-            if (e.getHttpStatus().is4xxClientError()) {
-                // 클라이언트 에러 처리 - 일반적으로 재시도하지 않음
-                throw new CoreException(ErrorType.BAD_REQUEST,
-                        "결제 정보 요청이 올바르지 않습니다: " + e.getCustomMessage());
-            } else if (e.getHttpStatus().is5xxServerError()) {
-                // 서버 에러 처리 - 재시도 가능한 에러
-                throw new CoreException(ErrorType.INTERNAL_ERROR,
-                        "결제 서비스에 일시적인 문제가 발생했습니다. 잠시 후 다시 시도해주세요.");
-            }
-            // 기타 에러
-            throw new CoreException(ErrorType.INTERNAL_ERROR,
-                    "결제 정보 조회 중 알 수 없는 오류가 발생했습니다.");
-        }
+        PaymentClientApiResponse<PgClientV1Dto.TransactionDetailResponse> response = pgV1Client.getTransaction(storeId, transactionKey);
+        return response.data().toTransactionDetail();
     }
 
-    @Override
-    public Order getPaymentsByOrderId( String orderId) {
-        try {
-            PaymentClientApiResponse<PgClientV1Dto.OrderResponse> response = pgV1Client.getPaymentsByOrderId(storeId, orderId);
-            PgClientV1Dto.OrderResponse orderResponse = response.data();
-            return orderResponse.toOrder();
-        }catch (PaymentClientException e){
-            log.error("주문에 엮인 결제 정보 조회 실패 - Status: {}, Type: {}, Message: {}",
-                    e.getHttpStatus(), e.getErrorType(), e.getCustomMessage());
-            // HTTP 상태에 따른 추가 처리
+    public TransactionDetail getTransactionFallback(String transactionKey, Throwable t) {
+        log.error("결제 정보 조회 실패 - 폴백 메소드 실행: {}", t.getMessage());
+        if (t instanceof PaymentClientException e) {
             if (e.getHttpStatus().is4xxClientError()) {
-                // 클라이언트 에러 처리 - 일반적으로 재시도하지 않음
                 throw new CoreException(ErrorType.BAD_REQUEST,
-                        "주문 정보 요청이 올바르지 않습니다: " + e.getCustomMessage());
-            } else if (e.getHttpStatus().is5xxServerError()) {
-                // 서버 에러 처리 - 재시도 가능한 에러
-                throw new CoreException(ErrorType.INTERNAL_ERROR,
-                        "결제 서비스에 일시적인 문제가 발생했습니다. 잠시 후 다시 시도해주세요.");
+                    "결제 정보 요청이 올바르지 않습니다: " + e.getCustomMessage());
             }
-            // 기타 에러
-            throw new CoreException(ErrorType.INTERNAL_ERROR,
-                    "주문에 엮인 결제 정보 조회 중 알 수 없는 오류가 발생했습니다.");
         }
+        throw new CoreException(ErrorType.INTERNAL_ERROR,
+            "결제 정보 조회 중 일시적인 문제가 발생했습니다. 잠시 후 다시 시도해주세요.");
+    }
+
+    @Retry(name = "orderRetry", fallbackMethod = "getPaymentsByOrderIdFallback")
+    @CircuitBreaker(name = "orderCircuitBreaker", fallbackMethod = "getPaymentsByOrderIdFallback")
+    @Override
+    public Order getPaymentsByOrderId(String orderId) {
+        PaymentClientApiResponse<PgClientV1Dto.OrderResponse> response = pgV1Client.getPaymentsByOrderId(storeId, orderId);
+        PgClientV1Dto.OrderResponse orderResponse = response.data();
+        return orderResponse.toOrder();
+    }
+
+    public Order getPaymentsByOrderIdFallback(String orderId, Throwable t) {
+        log.error("주문에 엮인 결제 정보 조회 실패 - 폴백 메소드 실행: {}", t.getMessage());
+        if (t instanceof PaymentClientException e) {
+            if (e.getHttpStatus().is4xxClientError()) {
+                throw new CoreException(ErrorType.BAD_REQUEST,
+                    "주문 정보 요청이 올바르지 않습니다: " + e.getCustomMessage());
+            }
+        }
+        throw new CoreException(ErrorType.INTERNAL_ERROR,
+            "주문에 엮인 결제 정보 조회 중 일시적인 문제가 발생했습니다. 잠시 후 다시 시도해주세요.");
     }
 }

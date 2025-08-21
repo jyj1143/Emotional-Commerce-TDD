@@ -6,7 +6,6 @@ import com.loopers.domain.payment.adapter.PaymentGatewayAdapter;
 import com.loopers.domain.payment.adapter.PaymentGatewayInfo;
 import com.loopers.domain.payment.dto.PaymentCommand.ReadyTransaction;
 import com.loopers.domain.payment.dto.PaymentInfo;
-import com.loopers.domain.payment.entity.PaymentGatewayTransactionModel;
 import com.loopers.domain.payment.enums.PaymentStatus;
 import com.loopers.domain.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;

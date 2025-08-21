@@ -5,8 +5,6 @@ import com.loopers.domain.payment.dto.PaymentCommand;
 import com.loopers.domain.payment.enums.CardType;
 import com.loopers.domain.payment.enums.PaymentMethod;
 import com.loopers.domain.payment.enums.PaymentStatus;
-import com.loopers.interfaces.api.payment.PaymentV1Dto.CardTypeDto;
-import com.loopers.interfaces.api.payment.PaymentV1Dto.PaymentStatusDto;
 
 public record PaymentCriteria() {
 
@@ -45,7 +43,7 @@ public record PaymentCriteria() {
     ) {
         public PaymentCommand.Synchronize toPaymentCommand(
         ) {
-            return new PaymentCommand.Synchronize(transactionKey, orderId, cardType, cardNo, amount, status, reason;
+            return new PaymentCommand.Synchronize(transactionKey, orderId, cardType, cardNo, amount, status, reason);
         }
     }
 }
