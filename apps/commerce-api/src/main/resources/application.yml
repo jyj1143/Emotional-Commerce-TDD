@@ -35,6 +35,24 @@ pg-simulator: # PG(Payment Gateway) 설정
   callback-url: http://localhost:8080/api/v1/payments/callback # 결제 처리 후 PG 서비스가 결과를 전송할 콜백 URL
   store-id: ${spring.application.name} # 상점 ID, 서비스 이름을 사용
 
+
+resilience4j:
+  circuitbreaker:  # 서킷 브레이커 설정
+    instances:
+      pgClient:
+        failure-rate-threshold: 50 # 50% 실패시 OPEN
+        slow-call-rate-threshold: 50 # 50% 이상이 느리면 OPEN
+        slow-call-duration-threshold: 1s # 1초 이상 응답은 느린 호출로 간주
+        sliding-window-type: COUNT_BASED # 슬라이딩 윈도우 타입 횟수 기반
+        sliding-window-size: 10 # 슬라이딩 윈도우 크기 (10회)
+        minimum-number-of-calls: 10 # 최소 10회 이상 호출되어야 판단 (조회 기능)
+        wait-duration-in-open-state: 2s # OPEN 상태에서 HALF-OPEN 상태로 전환되기까지 대기 시간 (2초)
+        permitted-number-of-calls-in-half-open-state: 1  # HALF-OPEN 상태에서 1회만 허용 (점진적 복구)
+  timelimiter:
+    instances:
+      pgClient:
+        timeout-duration: 2s # PG 서비스 호출 시 타임아웃 설정 (2초)
+
 ---
 spring:
   config:
