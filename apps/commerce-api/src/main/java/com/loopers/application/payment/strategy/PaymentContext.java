@@ -14,7 +14,7 @@ public class PaymentContext {
 
     private final List<PaymentStrategy> strategies;
 
-    public PaymentResult.Pay pay(PaymentCriteria.Pay criteria) {
+    public PaymentResult pay(PaymentCriteria.Pay criteria) {
         PaymentStrategy strategy = strategies.stream()
             .filter(s -> s.supports(criteria.paymentMethod()))
             .findFirst()

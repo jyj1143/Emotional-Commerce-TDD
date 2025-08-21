@@ -1,7 +1,7 @@
 package com.loopers.application.payment.strategy;
 
 import com.loopers.application.payment.dto.PaymentCriteria;
-import com.loopers.application.payment.dto.PaymentResult.Pay;
+import com.loopers.application.payment.dto.PaymentResult;
 import com.loopers.domain.payment.enums.PaymentMethod;
 import com.loopers.domain.payment.service.PaymentService;
 import com.loopers.domain.point.service.PointService;
@@ -22,7 +22,7 @@ public class PointPaymentStrategy implements PaymentStrategy {
     }
 
     @Override
-    public Pay pay(PaymentCriteria.Pay criteria) {
+    public PaymentResult pay(PaymentCriteria.Pay criteria) {
         // 포인트 사용
         pointService.usePoint(new UsePoint(criteria.userId(), criteria.amount()));
         // 결제 처리

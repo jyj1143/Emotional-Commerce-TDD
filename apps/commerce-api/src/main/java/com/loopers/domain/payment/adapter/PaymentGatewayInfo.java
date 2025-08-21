@@ -1,15 +1,18 @@
 package com.loopers.domain.payment.adapter;
 
+import com.loopers.domain.payment.enums.CardType;
+import com.loopers.domain.payment.enums.PaymentStatus;
+
 public record PaymentGatewayInfo(
 ) {
     // 결제 정보 확인
     public record TransactionDetail(
         String transactionKey,
         String orderId,
-        String cardType,
+        CardType cardType,
         String cardNo,
         String amount,
-        String status,
+        PaymentStatus status,
         String reason
     ){}
 
@@ -23,7 +26,7 @@ public record PaymentGatewayInfo(
     // 결제 응답
     public record Transaction(
         String transactionKey,
-        String status,
+        PaymentStatus status,
         String reason
     ) {
     }

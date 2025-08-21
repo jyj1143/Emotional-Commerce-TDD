@@ -52,10 +52,7 @@ public class PaymentGatewayTransactionModel extends BaseEntity {
     @Column(name = "payment_date", nullable = false)
     LocalDateTime paymentDate = LocalDateTime.now(); // 결제 일시
 
-    @Builder
-    public PaymentGatewayTransactionModel(Long storeId, Long refOrderId, Long refPaymentId,
-        String transactionKey, PaymentStatus paymentStatus, Money amount, CardType cardType,
-        CardNumber cardNumber, LocalDateTime paymentDate) {
+    private PaymentGatewayTransactionModel(Long storeId, Long refOrderId, Long refPaymentId, String transactionKey, PaymentStatus paymentStatus, Money amount, CardType cardType, CardNumber cardNumber) {
         this.storeId = storeId;
         this.refOrderId = refOrderId;
         this.refPaymentId = refPaymentId;
@@ -64,6 +61,9 @@ public class PaymentGatewayTransactionModel extends BaseEntity {
         this.amount = amount;
         this.cardType = cardType;
         this.cardNumber = cardNumber;
-        this.paymentDate = paymentDate;
+    }
+
+    public static PaymentGatewayTransactionModel of(Long storeId, Long refOrderId, Long refPaymentId, String transactionKey, PaymentStatus paymentStatus, Money amount, CardType cardType, CardNumber cardNumber) {
+        return new PaymentGatewayTransactionModel(storeId, refOrderId, refPaymentId, transactionKey, paymentStatus, amount, cardType, cardNumber);
     }
 }

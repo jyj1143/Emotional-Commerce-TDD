@@ -9,17 +9,23 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@FeignClient(url = "${pg.service-url}", name = "pgV1Client")
+@FeignClient(url = "${pg.service-url}", name = "pgV1Client", configuration = PaymentClientConfig.class)
 public interface PgV1Client {
 
     @PostMapping("/api/v1/payments")
-    PgClientV1Dto.TransactionResponse processPayment(
-        @RequestHeader("X-USER-ID") String userId,
-        @RequestBody PgClientV1Dto.PaymentRequest request);
+    PaymentClientApiResponse<PgClientV1Dto.TransactionResponse> processPayment(
+            @RequestHeader("X-USER-ID") String userId,
+            @RequestBody PgClientV1Dto.PaymentRequest request);
 
     @GetMapping("/api/v1/payments/{transactionKey}")
-    PgClientV1Dto.TransactionDetailResponse getTransaction(@PathVariable("transactionKey") String transactionKey);
+    PaymentClientApiResponse<PgClientV1Dto.TransactionDetailResponse> getTransaction(
+            @RequestHeader("X-USER-ID") String userId,
+            @PathVariable("transactionKey") String transactionKey
+    );
 
     @GetMapping("/api/v1/payments")
-    PgClientV1Dto.OrderResponse getPaymentsByOrderId(@RequestParam("orderId") String orderId);
+    PaymentClientApiResponse<PgClientV1Dto.OrderResponse> getPaymentsByOrderId(
+            @RequestHeader("X-USER-ID") String userId,
+            @RequestParam("orderId") String orderId
+    );
 }

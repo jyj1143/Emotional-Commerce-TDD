@@ -8,5 +8,5 @@ public interface PaymentStrategy {
 
     boolean supports(PaymentMethod paymentMethod);
 
-    PaymentResult.Pay pay(PaymentCriteria.Pay criteria);
+    PaymentResult pay(PaymentCriteria.Pay criteria);
 }
