@@ -11,6 +11,7 @@ import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
+import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,7 +29,7 @@ public class PaymentGatewaySimulator implements PaymentGatewayAdapter {
     private String storeId;
 
     @Retry(name = "paymentRetry", fallbackMethod = "processPaymentFallback")
-    @CircuitBreaker(name = "paymentCircuitBreaker", fallbackMethod = "processPaymentFallback")
+    @CircuitBreaker(name = "pgClient", fallbackMethod = "processPaymentFallback")
     @Override
     public Transaction processPayment(Payment command) {
         PgClientV1Dto.PaymentRequest request = new PgClientV1Dto.PaymentRequest(
@@ -57,7 +58,7 @@ public class PaymentGatewaySimulator implements PaymentGatewayAdapter {
     }
 
     @Retry(name = "transactionRetry", fallbackMethod = "getTransactionFallback")
-    @CircuitBreaker(name = "transactionCircuitBreaker", fallbackMethod = "getTransactionFallback")
+    @CircuitBreaker(name = "pgClient", fallbackMethod = "getTransactionFallback")
     @Override
     public TransactionDetail getTransaction(String transactionKey) {
         PaymentClientApiResponse<PgClientV1Dto.TransactionDetailResponse> response = pgV1Client.getTransaction(storeId, transactionKey);
@@ -77,7 +78,7 @@ public class PaymentGatewaySimulator implements PaymentGatewayAdapter {
     }
 
     @Retry(name = "orderRetry", fallbackMethod = "getPaymentsByOrderIdFallback")
-    @CircuitBreaker(name = "orderCircuitBreaker", fallbackMethod = "getPaymentsByOrderIdFallback")
+    @CircuitBreaker(name = "pgClient", fallbackMethod = "getPaymentsByOrderIdFallback")
     @Override
     public Order getPaymentsByOrderId(String orderId) {
         PaymentClientApiResponse<PgClientV1Dto.OrderResponse> response = pgV1Client.getPaymentsByOrderId(storeId, orderId);

@@ -28,8 +28,8 @@ public record PaymentCommand() {
     }
 
     public record ReadyTransaction(
-        Long orderId,
         Long paymentId,
+        Long orderId,
         String transactionKey,
         PaymentStatus paymentStatus,
         Long amount,

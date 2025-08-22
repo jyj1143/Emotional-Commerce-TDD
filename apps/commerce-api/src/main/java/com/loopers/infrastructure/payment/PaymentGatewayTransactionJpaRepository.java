@@ -2,6 +2,7 @@ package com.loopers.infrastructure.payment;
 
 import com.loopers.domain.payment.entity.PaymentGatewayTransactionModel;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -23,6 +24,6 @@ public interface PaymentGatewayTransactionJpaRepository extends JpaRepository<Pa
      * 특정 시간 이전에 생성된 PENDING 상태 트랜잭션만 조회
      */
     @Query("SELECT p FROM PaymentGatewayTransactionModel p WHERE p.paymentStatus = 'PENDING' AND p.createdAt < :time")
-    List<PaymentGatewayTransactionModel> findPendingTransactionsBefore(LocalDateTime time);
+    List<PaymentGatewayTransactionModel> findPendingTransactionsBefore(ZonedDateTime time);
 
 }

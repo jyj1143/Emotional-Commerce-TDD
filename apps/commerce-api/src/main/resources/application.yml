@@ -52,7 +52,17 @@ resilience4j:
     instances:
       pgClient:
         timeout-duration: 2s # PG 서비스 호출 시 타임아웃 설정 (2초)
-
+  retry:
+    instances:
+      paymentRetry:
+        maxAttempts: 3
+        waitDuration: 500ms
+      transactionRetry:
+        maxAttempts: 3
+        waitDuration: 500ms
+      orderRetry:
+        maxAttempts: 3
+        waitDuration: 500ms
 ---
 spring:
   config:
