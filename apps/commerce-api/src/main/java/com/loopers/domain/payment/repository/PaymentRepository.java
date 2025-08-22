@@ -10,16 +10,16 @@ public interface PaymentRepository {
 
     List<PaymentGatewayTransactionModel> findPendingTransactions();
 
-    List<PaymentGatewayTransactionModel> findPendingTransactionsBefore(LocalDateTime time);
-
     Optional<PaymentModel> findById(Long id);
 
-    PaymentModel findByRefOrderId(Long orderId);
+    Optional<PaymentModel> findByOrderId(Long orderId);
 
     PaymentModel save(PaymentModel payment);
 
     PaymentGatewayTransactionModel save(PaymentGatewayTransactionModel payment);
 
     Optional<PaymentGatewayTransactionModel> findTransactionByKey(String transactionKey);
+
+    Optional<PaymentGatewayTransactionModel> findTrxByOrderId(Long orderId);
 
 }

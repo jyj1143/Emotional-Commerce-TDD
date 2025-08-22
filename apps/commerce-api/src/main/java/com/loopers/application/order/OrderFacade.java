@@ -2,11 +2,6 @@ package com.loopers.application.order;
 
 import com.loopers.application.order.dto.OrderCriteria;
 import com.loopers.application.order.dto.OrderResult;
-import com.loopers.application.payment.dto.PaymentResult;
-import com.loopers.application.payment.strategy.PaymentContext;
-import com.loopers.application.payment.strategy.PointPaymentStrategy;
-import com.loopers.application.payment.strategy.condition.PaymentCondition;
-import com.loopers.application.payment.strategy.condition.PointPaymentCondition;
 import com.loopers.domain.coupone.dto.CouponCommand;
 import com.loopers.domain.coupone.service.CouponService;
 import com.loopers.domain.inventory.dto.InventoryCommand;
@@ -14,9 +9,7 @@ import com.loopers.domain.inventory.service.InventoryService;
 import com.loopers.domain.order.dto.OrderInfo;
 import com.loopers.domain.order.service.OrderService;
 import com.loopers.domain.payment.dto.PaymentCommand;
-import com.loopers.domain.payment.enums.PaymentMethod;
 import com.loopers.domain.payment.service.PaymentService;
-import com.loopers.domain.point.service.PointService;
 import com.loopers.domain.product.dto.sku.ProductSkuInfo;
 import com.loopers.domain.product.service.ProductSkuService;
 import java.util.List;
@@ -57,7 +50,7 @@ public class OrderFacade {
         OrderInfo successOrder = orderService.completeOrder(orderInfo.id());
 
         // 결제 준비
-        paymentService.ready(new PaymentCommand.Pay(orderInfo.id(), criteria.paymentMethod(), finalPrice));
+        paymentService.ready(new PaymentCommand.Pay(criteria.userId(), orderInfo.id(), criteria.paymentMethod(), finalPrice));
 
         return OrderResult.from(successOrder);
     }

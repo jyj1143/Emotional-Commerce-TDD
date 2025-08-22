@@ -28,7 +28,7 @@ public class PaymentGatewayTransactionModel extends BaseEntity {
     @Column(name = "ref_payment_id", nullable = false)
     private Long refPaymentId; // 결제 ID
 
-    @Column(name = "transaction_key", nullable = false)
+    @Column(name = "transaction_key")
     private String transactionKey;
 
     @Column(name = "payment_status", nullable = false)

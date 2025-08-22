@@ -22,7 +22,7 @@ public class PointPaymentStrategy implements PaymentStrategy<PointPaymentConditi
         // 포인트 사용
         pointService.usePoint(new UsePoint(condition.getUserId(), condition.getAmount()));
         // 결제 처리
-        paymentService.pay(new PaymentCommand.Pay(condition.getOrderId(), PaymentMethod.POINT, condition.getAmount()));
+        paymentService.pay(new PaymentCommand.Pay(condition.getUserId(), condition.getOrderId(), PaymentMethod.POINT, condition.getAmount()));
         return null;
     }
 }

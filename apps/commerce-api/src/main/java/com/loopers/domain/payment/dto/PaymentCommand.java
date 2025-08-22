@@ -1,17 +1,16 @@
 package com.loopers.domain.payment.dto;
 
-import com.loopers.domain.common.vo.Money;
 import com.loopers.domain.payment.enums.CardType;
 import com.loopers.domain.payment.enums.PaymentMethod;
 import com.loopers.domain.payment.enums.PaymentStatus;
-import com.loopers.domain.payment.vo.CardNumber;
 
 public record PaymentCommand() {
 
     public record Pay(
-        Long orderId,
-        PaymentMethod method,
-        Long amount
+            Long userId,
+            Long orderId,
+            PaymentMethod method,
+            Long amount
     ) {
 
     }

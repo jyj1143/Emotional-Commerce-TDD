@@ -16,7 +16,7 @@ public record PaymentCriteria() {
     ) {
 
         public PaymentCommand.Pay toPaymentCommand() {
-            return new PaymentCommand.Pay(orderId, paymentMethod, amount);
+            return new PaymentCommand.Pay(userId, orderId, paymentMethod, amount);
         }
     }
 

@@ -21,6 +21,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PaymentModel extends BaseEntity {
 
+    @Column(name = "ref_user_id", nullable = false)
+    private Long refUserId; // 회원 ID
+
     @Column(name = "ref_order_id", nullable = false)
     private Long refOrderId; // 주문 ID
 
@@ -35,7 +38,10 @@ public class PaymentModel extends BaseEntity {
     @Column(name = "amount", nullable = false)
     private Money amount; // 결제 금액
 
-    private PaymentModel(Long refOrderId, PaymentMethod paymentMethod, PaymentStatus paymentStatus, Long amount) {
+    private PaymentModel(Long refUserId, Long refOrderId, PaymentMethod paymentMethod, PaymentStatus paymentStatus, Long amount) {
+        if (refUserId == null) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "회원 ID는 필수 값입니다.");
+        }
         if (refOrderId == null) {
             throw new CoreException(ErrorType.BAD_REQUEST, "주문 ID는 필수 값입니다.");
         }
@@ -45,15 +51,15 @@ public class PaymentModel extends BaseEntity {
         if (paymentStatus == null) {
             throw new CoreException(ErrorType.BAD_REQUEST, "결제 상태는 필수 값입니다.");
         }
-
+        this.refUserId = refUserId;
         this.refOrderId = refOrderId;
         this.paymentMethod = paymentMethod;
         this.paymentStatus = paymentStatus;
         this.amount = Money.of(amount);
     }
 
-    public static PaymentModel of(Long refOrderId, PaymentMethod paymentMethod, PaymentStatus paymentStatus, Long amount) {
-        return new PaymentModel(refOrderId, paymentMethod, paymentStatus, amount);
+    public static PaymentModel of(Long refUserId, Long refOrderId, PaymentMethod paymentMethod, PaymentStatus paymentStatus, Long amount) {
+        return new PaymentModel(refUserId,refOrderId, paymentMethod, paymentStatus, amount);
     }
 
     public void complete(){

@@ -19,7 +19,9 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
 
     public PaymentInfo findByRefOrderId(Long orderId) {
-        PaymentModel paymentModel = paymentRepository.findByRefOrderId(orderId);
+        PaymentModel paymentModel = paymentRepository.findByOrderId(orderId).orElseThrow(
+            () -> new CoreException(ErrorType.NOT_FOUND, "주문을 찾을 수 없습니다.")
+        );
         return PaymentInfo.of(
             paymentModel
         );
@@ -27,7 +29,7 @@ public class PaymentService {
 
     @Transactional
     public PaymentModel pay(PaymentCommand.Pay command) {
-        PaymentModel paymentModel = PaymentModel.of(command.orderId(), command.method(), PaymentStatus.PENDING, command.amount());
+        PaymentModel paymentModel = PaymentModel.of(command.userId(),command.orderId(), command.method(), PaymentStatus.PENDING, command.amount());
         paymentRepository.save(paymentModel);
         paymentModel.complete();
         return paymentModel;
@@ -35,7 +37,7 @@ public class PaymentService {
 
     @Transactional
     public PaymentModel ready(PaymentCommand.Pay command) {
-        PaymentModel paymentModel = PaymentModel.of(command.orderId(), command.method(), PaymentStatus.PENDING, command.amount());
+        PaymentModel paymentModel = PaymentModel.of(command.userId(),command.orderId(), command.method(), PaymentStatus.PENDING, command.amount());
         paymentRepository.save(paymentModel);
         return paymentModel;
     }
@@ -51,9 +53,9 @@ public class PaymentService {
 
 
     @Transactional
-    public PaymentGatewayTransactionModel completePayment(String transactionKey) {
-        PaymentGatewayTransactionModel transaction = paymentRepository.findTransactionByKey(transactionKey)
-            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "결제 트랜잭션을 찾을 수 없습니다."));
+    public PaymentGatewayTransactionModel completePayment(Long orderId) {
+        PaymentGatewayTransactionModel transaction = paymentRepository.findTrxByOrderId(orderId)
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "주문을 찾을 수 없습니다."));
 
         transaction.complete();
 

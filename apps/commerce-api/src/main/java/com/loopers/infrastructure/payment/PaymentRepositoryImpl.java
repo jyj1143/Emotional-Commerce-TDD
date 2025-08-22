@@ -6,6 +6,8 @@ import com.loopers.domain.payment.repository.PaymentRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+
+import com.loopers.support.error.CoreException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -30,9 +32,8 @@ public class PaymentRepositoryImpl implements PaymentRepository {
     }
 
     @Override
-    public PaymentModel findByRefOrderId(Long orderId) {
-        return paymentJpaRepository.findByRefOrderId(orderId)
-            .orElseThrow(() -> new IllegalArgumentException("Payment not found for order ID: " + orderId));
+    public Optional<PaymentModel> findByOrderId(Long orderId) {
+        return paymentJpaRepository.findByRefOrderId(orderId);
     }
 
     @Override
@@ -48,6 +49,11 @@ public class PaymentRepositoryImpl implements PaymentRepository {
     @Override
     public Optional<PaymentGatewayTransactionModel> findTransactionByKey(String transactionKey) {
         return paymentGatewayTransactionJpaRepository.findByTransactionKey(transactionKey);
+    }
+
+    @Override
+    public Optional<PaymentGatewayTransactionModel> findTrxByOrderId(Long orderId) {
+        return paymentGatewayTransactionJpaRepository.findByRefOrderId(orderId);
     }
 
 }

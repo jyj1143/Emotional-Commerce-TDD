@@ -298,38 +298,5 @@ public class OrderFacadeIntegrationTest {
             assertEquals(CouponStatus.AVAILABLE, unusedCoupon.getCouponStatus());
         }
 
-
-
-//        @DisplayName("정상적인 주문 생성 요청을 하면 주문 생성후 재고 차감 성공한다.")
-//        @Test
-//        void when_validOrderRequestGiven_then_createOrder() {
-//            Long orderQuantity = 10L;
-//            Long inventoryQuantity = 100L;
-//
-//            // given
-//            ProductSkuModel productSkuModel = ProductSkuModel.of(0L,0L, "색상", "RED"
-//                , SaleStatus.ON_SALE, 1L);
-//            ProductSkuModel savedProductSkuModel = productSkuRepository.save(productSkuModel);
-//
-//            InventoryModel savedInventoryModel = inventoryRepository.save(InventoryModel.of(inventoryQuantity, savedProductSkuModel.getId()));
-//            PointModel pointModel = PointModel.of(1000L, 1L);
-//            pointRepository.save(pointModel);
-//            pointRepository.increase(1L, 50000L);
-//
-//            Order order = new OrderCriteria.Order(
-//                1L,
-//                List.of(new OrderItem(savedProductSkuModel.getId(), 10L)),
-//                null
-//            );
-//            OrderResult saved = orderFacade.order(order);
-//            // when
-//            Long currentQuantity= inventoryRepository.find(savedProductSkuModel.getId()).get().getQuantity().getQuantity();
-//            // then
-//            assertAll(
-//                () -> assertThat(saved.id()).isNotNull(),
-//                () -> assertThat(saved.userId()).isEqualTo(pointModel.getRefUserId()),
-//                () -> assertThat(currentQuantity).isEqualTo(inventoryQuantity - orderQuantity)
-//            );
-//        }
     }
 }
