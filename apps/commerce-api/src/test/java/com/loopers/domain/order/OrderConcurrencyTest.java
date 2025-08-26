@@ -21,6 +21,7 @@ import com.loopers.domain.inventory.repository.InventoryRepository;
 import com.loopers.domain.inventory.service.InventoryService;
 import com.loopers.domain.order.OrderModel;
 import com.loopers.domain.order.repository.OrderRepository;
+import com.loopers.domain.payment.enums.PaymentMethod;
 import com.loopers.domain.payment.repository.PaymentRepository;
 import com.loopers.domain.point.PointModel;
 import com.loopers.domain.point.repository.PointRepository;
@@ -138,7 +139,8 @@ public class OrderConcurrencyTest {
                     OrderCriteria.Order orderCriteria = new OrderCriteria.Order(
                         USER_ID,
                         List.of(new OrderCriteria.Order.OrderItem(productSku.getId(), 1L)),
-                        couponId
+                        couponId,
+                        PaymentMethod.POINT
                     );
                     return orderFacade.order(orderCriteria);
                 } finally {
@@ -198,7 +200,8 @@ public class OrderConcurrencyTest {
                     OrderCriteria.Order orderCriteria = new OrderCriteria.Order(
                         USER_ID,
                         List.of(new OrderCriteria.Order.OrderItem(productSku.getId(), 1L)),
-                        null
+                        null,
+                        PaymentMethod.POINT
                     );
                     return orderFacade.order(orderCriteria);
                 }
@@ -258,7 +261,8 @@ public class OrderConcurrencyTest {
                     OrderCriteria.Order orderCriteria = new OrderCriteria.Order(
                         USER_ID,
                         List.of(new OrderCriteria.Order.OrderItem(productSku.getId(), quantityPerOrder)),
-                        null
+                        null,
+                        PaymentMethod.POINT
                     );
                     OrderResult result = orderFacade.order(orderCriteria);
                     successCount.incrementAndGet();

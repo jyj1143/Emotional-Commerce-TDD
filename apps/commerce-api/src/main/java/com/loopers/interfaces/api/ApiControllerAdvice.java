@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
+import com.loopers.infrastructure.external.payment.client.PaymentClientException;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -134,6 +135,12 @@ public class ApiControllerAdvice {
         String headerName = exception.getHeaderName();
         String message = String.format("필수 헤더 '%s'가 누락되었습니다.", headerName);
         return failureResponse(ErrorType.BAD_REQUEST, message);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ApiResponse<?>> handleMethodArgumentNotValid(PaymentClientException ex) {
+        log.error("결제 서비스 오류 발생 : {}", ex.getMessage(), ex);
+        return failureResponse(ErrorType.INTERNAL_ERROR, "결제 서비스 오류: " + ex.getMessage());
     }
 
     private String extractMissingParameter(String message) {
