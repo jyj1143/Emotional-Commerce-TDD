@@ -3,6 +3,7 @@ package com.loopers.domain.order.service;
 import com.loopers.domain.order.OrderItemModel;
 import com.loopers.domain.order.OrderModel;
 import com.loopers.domain.order.dto.OrderCommand;
+import com.loopers.domain.order.dto.OrderEvent;
 import com.loopers.domain.order.dto.OrderInfo;
 import com.loopers.domain.order.enums.OrderStatus;
 import com.loopers.domain.order.repository.OrderRepository;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final OrderEventPublisher eventPublisher;
 
     @Transactional
     public OrderInfo placeOrder(OrderCommand.Order command) {
@@ -30,6 +32,8 @@ public class OrderService {
             orderItemModels,
             OrderStatus.PENDING);
         OrderModel save = orderRepository.save(orderModel);
+        eventPublisher.publish(OrderEvent.Created.from(save));
+
         return OrderInfo.from(save);
     }
 

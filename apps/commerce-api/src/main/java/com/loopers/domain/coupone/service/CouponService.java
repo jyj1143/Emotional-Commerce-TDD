@@ -3,6 +3,7 @@ package com.loopers.domain.coupone.service;
 import com.loopers.domain.coupone.DiscountPolicy;
 import com.loopers.domain.coupone.DiscountPolicyFactory;
 import com.loopers.domain.coupone.dto.CouponCommand;
+import com.loopers.domain.coupone.dto.CouponDisCountInfo;
 import com.loopers.domain.coupone.dto.CouponInfo;
 import com.loopers.domain.coupone.entity.CouponModel;
 import com.loopers.domain.coupone.entity.CouponPolicyModel;
@@ -56,6 +57,22 @@ public class CouponService {
 
         CouponModel saved = couponRepository.save(couponModel);
         return CouponInfo.from(saved);
+    }
+
+    @Transactional
+    public CouponDisCountInfo apply(CouponCommand.Apply command) {
+        Long totalPrice = command.totalPrice();
+        Long finalPrice = totalPrice;
+
+        // 쿠폰 적용
+        if (command.couponId() != null) {
+            Long discountAmount = calculateDiscount(command.couponId(), command.userId(), totalPrice);
+            finalPrice = Math.max(0, totalPrice - discountAmount);
+
+            // 쿠폰 사용 처리
+            useCoupon(new CouponCommand.UseCoupon(command.couponId(), command.orderId(), command.userId()));
+        }
+        return CouponDisCountInfo.from(command.couponId(), finalPrice);
     }
 
     @Transactional
