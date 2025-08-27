@@ -79,7 +79,7 @@ class ProductSignalEventListenerTest {
         @Test
         void decreaseLikeCount() {
             // given
-            Long targetId = 1L; // 적절한 상품 ID 값 설정
+            Long targetId = 1L;
             LikeEvent.UnLike event = LikeEvent.UnLike.of(targetId, LikeType.PRODUCT);
 
             // when
