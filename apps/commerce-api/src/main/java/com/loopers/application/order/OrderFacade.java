@@ -44,6 +44,8 @@ public class OrderFacade {
             inventoryService.decrease(new InventoryCommand.DecreaseStock(
                 item.skuId(),
                 item.quantity()))
+        CouponDisCountInfo couponDisCountInfo = couponService.apply(
+            new Apply(criteria.couponId(), orderInfo.id(), criteria.userId(), orderInfo.totalPrice())
         );
 
         // 주문 완료
