@@ -7,6 +7,7 @@ public record OrderCommand() {
 
     public record Order(
         Long userId,
+        Long couponId,
         List<OrderItem> orderItem
     ) {
         public record OrderItem(

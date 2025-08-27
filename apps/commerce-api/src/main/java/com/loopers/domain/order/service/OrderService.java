@@ -32,7 +32,7 @@ public class OrderService {
             orderItemModels,
             OrderStatus.PENDING);
         OrderModel save = orderRepository.save(orderModel);
-        eventPublisher.publish(OrderEvent.Created.from(save));
+        eventPublisher.publish(OrderEvent.Created.from(save, command.couponId()));
 
         return OrderInfo.from(save);
     }
@@ -44,6 +44,5 @@ public class OrderService {
         orderModel.completeOrder();
         return OrderInfo.from(orderModel);
     }
-
 
 }

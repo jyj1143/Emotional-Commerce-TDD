@@ -7,12 +7,14 @@ public record OrderEvent() {
     public record Created(
         Long orderId,
         Long userId,
+        Long couponId,
         List<OrderItem> items
     ) {
-        public static OrderEvent.Created from(OrderModel order) {
+        public static OrderEvent.Created from(OrderModel order, Long couponId) {
             return new OrderEvent.Created(
                 order.getId(),
                 order.getRefUserId(),
+                couponId,
                 order.getOrderItemModels().stream()
                     .map(item -> new OrderItem(
                         item.getId(),

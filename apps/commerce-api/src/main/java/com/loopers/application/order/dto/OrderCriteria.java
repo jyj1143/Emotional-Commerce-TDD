@@ -29,7 +29,7 @@ public record OrderCriteria() {
                 ))
                 .toList();
 
-            return new OrderCommand.Order(userId, items);
+            return new OrderCommand.Order(userId, couponId, items);
         }
 
 
@@ -49,6 +49,7 @@ public record OrderCriteria() {
             Long skuId,
             Long quantity
         ) {
+
             public ProductSkuCommand.OrderSku toProductOption() {
                 return new ProductSkuCommand.OrderSku(skuId, quantity);
             }
