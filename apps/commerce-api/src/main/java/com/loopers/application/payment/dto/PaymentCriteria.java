@@ -25,7 +25,8 @@ public record PaymentCriteria() {
         Long orderId,
         CardType cardType,
         String cardNo,
-        Long amount
+        Long amount,
+        PaymentMethod paymentMethod
     ) {
 
         public PaymentGatewayCommand.Payment toPaymentCommand() {

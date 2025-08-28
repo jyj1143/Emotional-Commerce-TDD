@@ -1,6 +1,7 @@
 package com.loopers.domain.payment.enums;
 
 public enum PaymentStatus {
+    CREATED, // 결제 생성
     PENDING, // 결제 대기 중
     COMPLETED, // 결제 완료
     FAILED, // 결제 실패

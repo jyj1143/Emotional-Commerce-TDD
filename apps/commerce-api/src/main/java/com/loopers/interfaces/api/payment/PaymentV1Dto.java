@@ -3,6 +3,7 @@ package com.loopers.interfaces.api.payment;
 import com.loopers.application.payment.dto.PaymentCriteria;
 import com.loopers.application.payment.dto.TransactionResult;
 import com.loopers.domain.payment.enums.CardType;
+import com.loopers.domain.payment.enums.PaymentMethod;
 import com.loopers.domain.payment.enums.TransactionStatus;
 
 public class PaymentV1Dto {
@@ -27,14 +28,16 @@ public class PaymentV1Dto {
             Long orderId,
             CardTypeDto cardType,
             String cardNo,
-            Long amount
+            Long amount,
+            PaymentMethod paymentMethod
     ) {
         public PaymentCriteria.PgPay toPaymentCriteria() {
             return new PaymentCriteria.PgPay(
                 orderId,
                 cardType.toCardType(),
                 cardNo,
-                amount
+                amount,
+                paymentMethod
             );
         }
     }

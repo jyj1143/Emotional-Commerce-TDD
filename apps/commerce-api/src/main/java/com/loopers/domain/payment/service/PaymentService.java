@@ -29,17 +29,17 @@ public class PaymentService {
 
     @Transactional
     public PaymentInfo pay(PaymentCommand.Pay command) {
-        PaymentModel paymentModel = PaymentModel.of(command.userId(),command.orderId(), command.method(), PaymentStatus.PENDING, command.amount());
-        paymentRepository.save(paymentModel);
-        paymentModel.complete();
+        PaymentModel payment = paymentRepository.findByOrderId(command.orderId())
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "존재하지 않는 결제입니다."));
+        payment.complete();
         return PaymentInfo.of(
-            paymentModel
+            payment
         );
     }
 
     @Transactional
     public PaymentInfo ready(PaymentCommand.Ready command) {
-        PaymentModel paymentModel = PaymentModel.of(command.userId(),command.orderId(), null, PaymentStatus.PENDING, command.amount());
+        PaymentModel paymentModel = PaymentModel.of(command.userId(),command.orderId(), null, PaymentStatus.CREATED, command.amount());
         paymentRepository.save(paymentModel);
         return PaymentInfo.of(
             paymentModel

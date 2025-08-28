@@ -56,9 +56,8 @@ public class PaymentFacade {
 
         if (gatewayResponse != null && PaymentStatus.COMPLETED.name().equals(gatewayResponse.status().name())) {
             paymentService.completePayment(criteria.orderId());
-
-           executePaymentStrategy(paymentInfo, criteria);
         }
+        executePaymentStrategy(paymentInfo, criteria);
 
         return TransactionResult.from(gatewayResponse);
     }
