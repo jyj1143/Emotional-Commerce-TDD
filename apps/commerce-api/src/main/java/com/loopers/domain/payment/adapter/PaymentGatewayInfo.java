@@ -27,7 +27,8 @@ public record PaymentGatewayInfo(
     public record Transaction(
         String transactionKey,
         PaymentStatus status,
-        String reason
+        String reason,
+        Boolean isSuccess
     ) {
     }
 

@@ -27,7 +27,8 @@ public record PgClientV1Dto() {
             return new PaymentGatewayInfo.Transaction(
                 transactionKey,
                 status.toPaymentStatus(),
-                reason
+                reason,
+                true
             );
         }
     }

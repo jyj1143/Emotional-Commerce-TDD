@@ -12,6 +12,8 @@ import com.loopers.domain.payment.dto.PaymentInfo;
 import com.loopers.domain.payment.enums.PaymentMethod;
 import com.loopers.domain.payment.enums.PaymentStatus;
 import com.loopers.domain.payment.service.PaymentService;
+import com.loopers.support.error.CoreException;
+import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -33,6 +35,9 @@ public class CardPaymentStrategy implements PaymentStrategy<CardPaymentCondition
                 condition.getAmount()
             ));
 
+        if(!gatewayResponse.isSuccess()){
+            throw new CoreException(ErrorType.INTERNAL_ERROR, gatewayResponse.reason());
+        }
         paymentService.readyPaymentGatewayTransaction(
             new ReadyTransaction(
                 paymentInfo.id(),
