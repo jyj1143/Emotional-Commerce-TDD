@@ -1,4 +1,4 @@
-package com.loopers.infrastructure.dataplatform;
+package com.loopers.infrastructure.external.dataplatform;
 
 import java.util.Random;
 import lombok.extern.slf4j.Slf4j;

@@ -1,4 +1,4 @@
-package com.loopers.infrastructure.dataplatform;
+package com.loopers.infrastructure.external.dataplatform;
 
 import com.loopers.domain.dataplatform.DataPlatformGatewayAdapter;
 import lombok.RequiredArgsConstructor;
