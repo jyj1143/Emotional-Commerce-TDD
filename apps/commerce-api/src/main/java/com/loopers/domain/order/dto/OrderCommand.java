@@ -21,5 +21,13 @@ public record OrderCommand() {
         }
     }
 
+    public record PendingPayment(
+        Long orderId,
+        Long couponId,
+        Long finalPrice
+    ) {
+
+    }
+
 
 }

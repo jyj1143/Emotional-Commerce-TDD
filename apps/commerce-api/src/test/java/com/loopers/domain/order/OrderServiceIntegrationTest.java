@@ -30,6 +30,7 @@ public class OrderServiceIntegrationTest {
             // given
             OrderCommand.Order command = new OrderCommand.Order(
                 1L,
+                1L,
                 List.of(new OrderItem(10L, 10L, 10L))
             );
 

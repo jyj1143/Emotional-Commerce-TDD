@@ -1,6 +1,8 @@
 package com.loopers.interfaces.api.payment;
 
 import com.loopers.application.payment.PaymentFacade;
+import com.loopers.application.payment.dto.PaymentCriteria;
+import com.loopers.application.payment.dto.PaymentCriteria.Conclude;
 import com.loopers.application.payment.dto.TransactionResult;
 import com.loopers.interfaces.api.ApiResponse;
 import lombok.RequiredArgsConstructor;
@@ -20,10 +22,21 @@ public class PaymentV1Controller implements PaymentV1ApiSpec{
         return ApiResponse.success(PaymentV1Dto.TransactionResponse.from(transaction));
     }
 
-    @GetMapping("/callback")
+    @PostMapping("/callback")
     @Override
-    public ApiResponse<Void> callback(PaymentV1Dto.CallbackRequest request) {
+    public ApiResponse<?> callback(@RequestBody PaymentV1Dto.CallbackRequest request) {
         System.out.println("Payment callback received: " + request);
-        return null;
+        PaymentCriteria.Conclude conclude = new PaymentCriteria.Conclude(
+            request.transactionKey(),
+            request.orderId(),
+            request.cardType().toCardType(),
+            request.cardNo(),
+            request.amount(),
+            request.status().toTransactionStatus(),
+            request.reason()
+        );
+        paymentFacade.concludePayment(conclude);
+
+        return ApiResponse.success();
     }
 }

@@ -2,7 +2,7 @@ package com.loopers.application.order;
 
 import com.loopers.application.order.dto.OrderCriteria;
 import com.loopers.application.order.dto.OrderResult;
-import com.loopers.domain.coupone.dto.CouponCommand.Apply;
+import com.loopers.domain.coupone.dto.CouponCommand;
 import com.loopers.domain.coupone.dto.CouponDisCountInfo;
 import com.loopers.domain.coupone.service.CouponService;
 import com.loopers.domain.order.dto.OrderInfo;
@@ -42,11 +42,10 @@ public class OrderFacade {
 
         // 쿠폰 최종 결제금액
         CouponDisCountInfo couponDisCountInfo = couponService.getTotalPrice(
-            new Apply(criteria.couponId(), orderInfo.id(), criteria.userId(), orderInfo.totalPrice())
+            new CouponCommand.Calculate(criteria.couponId(), criteria.userId(), orderInfo.totalPrice())
         );
 
-        // 결제 준비
-        paymentService.ready(new PaymentCommand.Pay(criteria.userId(), orderInfo.id(), criteria.paymentMethod(), couponDisCountInfo.discountApplyPrice()));
+        orderService.pendingPayment(criteria.toOrderCommand(orderInfo.id(), couponDisCountInfo.discountApplyPrice()));
 
         return OrderResult.from(orderInfo);
     }

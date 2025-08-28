@@ -8,7 +8,8 @@ public record OrderEvent() {
         Long orderId,
         Long userId,
         Long couponId,
-        List<OrderItem> items
+        List<OrderItem> items,
+        Long finalPrice
     ) {
         public static OrderEvent.Created from(OrderModel order, Long couponId) {
             return new OrderEvent.Created(
@@ -23,7 +24,8 @@ public record OrderEvent() {
                         item.getPurchasePrice().getAmount(),
                         item.getRefProductSkuId()
                         )
-                    ).toList()
+                    ).toList(),
+                order.getTotalPrice().getAmount()
             );
         }
         public record OrderItem(

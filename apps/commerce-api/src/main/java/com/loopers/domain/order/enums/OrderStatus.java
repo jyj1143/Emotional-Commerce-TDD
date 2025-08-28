@@ -6,6 +6,7 @@ import java.util.stream.Stream;
 
 public enum OrderStatus {
     PENDING("주문 접수"),
+    PENDING_PAYMENT("결제 대기"),
     CANCELED("주문 취소"),
     ORDER_SUCCESS("주문 완료"),
     PAID("결제 완료"),

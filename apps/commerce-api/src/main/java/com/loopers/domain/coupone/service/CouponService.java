@@ -60,7 +60,7 @@ public class CouponService {
     }
 
     @Transactional
-    public CouponDisCountInfo getTotalPrice(CouponCommand.Apply command) {
+    public CouponDisCountInfo getTotalPrice(CouponCommand.Calculate command) {
         Long totalPrice = command.totalPrice();
         Long finalPrice = totalPrice;
 

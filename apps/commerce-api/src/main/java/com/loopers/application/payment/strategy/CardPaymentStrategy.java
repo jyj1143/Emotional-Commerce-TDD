@@ -17,7 +17,7 @@ public class CardPaymentStrategy implements PaymentStrategy<CardPaymentCondition
     @Override
     public PaymentResult pay(CardPaymentCondition condition) {
         // 결제 준비
-        paymentService.ready(new PaymentCommand.Pay(condition.getUserId(),condition.getOrderId(), PaymentMethod.CARD, condition.getAmount()));
+        paymentService.pay(new PaymentCommand.Pay(condition.getUserId(),condition.getOrderId(), PaymentMethod.CARD, condition.getAmount()));
         return null;
     }
 }

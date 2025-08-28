@@ -2,9 +2,8 @@ package com.loopers.domain.coupone.dto;
 
 public record CouponCommand (){
 
-    public record Apply(
+    public record Calculate(
         Long couponId,
-        Long orderId,
         Long userId,
         Long totalPrice
     ){

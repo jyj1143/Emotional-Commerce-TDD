@@ -28,18 +28,22 @@ public class PaymentService {
     }
 
     @Transactional
-    public PaymentModel pay(PaymentCommand.Pay command) {
+    public PaymentInfo pay(PaymentCommand.Pay command) {
         PaymentModel paymentModel = PaymentModel.of(command.userId(),command.orderId(), command.method(), PaymentStatus.PENDING, command.amount());
         paymentRepository.save(paymentModel);
         paymentModel.complete();
-        return paymentModel;
+        return PaymentInfo.of(
+            paymentModel
+        );
     }
 
     @Transactional
-    public PaymentModel ready(PaymentCommand.Pay command) {
-        PaymentModel paymentModel = PaymentModel.of(command.userId(),command.orderId(), command.method(), PaymentStatus.PENDING, command.amount());
+    public PaymentInfo ready(PaymentCommand.Ready command) {
+        PaymentModel paymentModel = PaymentModel.of(command.userId(),command.orderId(), null, PaymentStatus.PENDING, command.amount());
         paymentRepository.save(paymentModel);
-        return paymentModel;
+        return PaymentInfo.of(
+            paymentModel
+        );
     }
 
     @Transactional
@@ -65,6 +69,35 @@ public class PaymentService {
         payment.complete();
 
         return transaction;
+    }
+
+
+    @Transactional
+    public PaymentInfo success(PaymentCommand.Success command) {
+        PaymentGatewayTransactionModel paymentTrx = paymentRepository.findTransactionByKey(
+                command.transactionKey())
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "해당하는 결제 트랜잭션 정보가 없습니다."));
+
+        PaymentModel payment = paymentRepository.findByOrderId(command.orderId())
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "해당하는 결제 정보가 없습니다."));
+
+        paymentTrx.complete();
+        payment.complete();
+        return PaymentInfo.of(payment);
+    }
+
+    @Transactional
+    public PaymentInfo fail(PaymentCommand.Fail command) {
+        PaymentGatewayTransactionModel paymentTrx = paymentRepository.findTransactionByKey(
+                command.transactionKey())
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "해당하는 결제 트랜잭션 정보가 없습니다."));
+
+        PaymentModel payment = paymentRepository.findByOrderId(command.orderId())
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "해당하는 결제 정보가 없습니다."));
+
+        paymentTrx.fail(command.reason());
+        payment.fail();
+        return PaymentInfo.of(payment);
     }
 
 }
