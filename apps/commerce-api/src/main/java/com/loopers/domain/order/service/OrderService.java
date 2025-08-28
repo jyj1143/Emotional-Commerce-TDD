@@ -24,7 +24,7 @@ public class OrderService {
     @Transactional
     public OrderInfo placeOrder(OrderCommand.Order command) {
         List<OrderItemModel> orderItemModels = command.orderItem().stream()
-            .map(item ->  OrderItemModel.of(item.quantity(), item.purchasePrice(), item.refProductSkuId()))
+            .map(item -> OrderItemModel.of(item.quantity(), item.purchasePrice(), item.refProductSkuId()))
             .toList();
 
         OrderModel orderModel = OrderModel.of(
@@ -32,9 +32,18 @@ public class OrderService {
             orderItemModels,
             OrderStatus.PENDING);
         OrderModel save = orderRepository.save(orderModel);
-        eventPublisher.publish(OrderEvent.Created.from(save, command.couponId()));
 
         return OrderInfo.from(save);
+    }
+
+    @Transactional
+    public OrderInfo pendingPayment(OrderCommand.PendingPayment command) {
+        OrderModel orderModel = orderRepository.find(command.orderId())
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "주문을 찾을 수 없습니다."));
+        orderModel.pendingPayment(command.finalPrice());
+
+        eventPublisher.publish(OrderEvent.Created.from(orderModel, command.couponId()));
+        return OrderInfo.from(orderModel);
     }
 
     @Transactional
