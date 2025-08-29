@@ -8,7 +8,7 @@ public record PaymentGatewayInfo(
     // 결제 정보 확인
     public record TransactionDetail(
         String transactionKey,
-        String orderId,
+        Long orderId,
         CardType cardType,
         String cardNo,
         String amount,
