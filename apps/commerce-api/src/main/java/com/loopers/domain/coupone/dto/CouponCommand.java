@@ -31,4 +31,12 @@ public record CouponCommand (){
 
     }
 
+    public record RestoreCoupon(
+        Long couponId,
+        Long userId
+    ) {
+
+    }
+
+
 }

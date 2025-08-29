@@ -29,5 +29,21 @@ public record OrderCommand() {
 
     }
 
+    public record Complete(
+        Long orderId,
+        Long couponId,
+        Long finalPrice
+    ) {
+
+    }
+
+    public record Cancel(
+        Long orderId,
+        Long couponId,
+        Long finalPrice
+    ) {
+
+    }
+
 
 }

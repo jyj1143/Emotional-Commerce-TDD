@@ -82,6 +82,25 @@ public class CouponService {
         return CouponInfo.from(couponModel);
     }
 
+    @Transactional
+    public CouponInfo restoreCoupon(CouponCommand.RestoreCoupon command) {
+        CouponModel couponModel = couponRepository.findWithLockByIdAndRefUserId(command.couponId(), command.userId())
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "쿠폰을 찾을 수 없습니다."));
+
+        if (!couponModel.isUsed()) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "사용되지 않은 쿠폰은 복원할 수 없습니다.");
+        }
+
+        if (couponModel.isExpired()) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "만료된 쿠폰은 복원할 수 없습니다.");
+        }
+
+        couponModel.restore();
+
+        return CouponInfo.from(couponModel);
+    }
+
+
     @Transactional(readOnly = true)
     public PageResult<CouponInfo> getCoupons(CouponCommand.GetMyCoupons command) {
         PageResult<CouponModel> pageResult = couponRepository.findUserCoupon(command.userId(), command.page(), command.size());

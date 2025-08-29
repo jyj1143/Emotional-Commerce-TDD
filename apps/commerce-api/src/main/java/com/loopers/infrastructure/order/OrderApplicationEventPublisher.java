@@ -1,5 +1,6 @@
 package com.loopers.infrastructure.order;
 
+import com.loopers.domain.order.dto.OrderEvent.Cancelled;
 import com.loopers.domain.order.dto.OrderEvent.Created;
 import com.loopers.domain.order.service.OrderEventPublisher;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,13 @@ public class OrderApplicationEventPublisher implements OrderEventPublisher {
     @Override
     public void publish(Created event) {
         log.info("Event published: type=[OrderCreated], orderId=[{}], userId=[{}], itemCount=[{}]",
+            event.orderId(), event.userId(),  event.items().size());
+        publisher.publishEvent(event);
+    }
+
+    @Override
+    public void publish(Cancelled event) {
+        log.info("Event published: type=[OrderCancelled], orderId=[{}], userId=[{}], itemCount=[{}]",
             event.orderId(), event.userId(),  event.items().size());
         publisher.publishEvent(event);
     }

@@ -76,6 +76,10 @@ public class OrderModel extends BaseEntity {
         this.status = OrderStatus.ORDER_SUCCESS;
     }
 
+    public void canceled() {
+        this.status = OrderStatus.CANCELED;
+    }
+
     public void pendingPayment(Long finalPrice) {
         if (finalPrice == null || finalPrice < 0) {
             throw new CoreException(ErrorType.BAD_REQUEST, "최종 가격은 음수가 될 수 없습니다.");

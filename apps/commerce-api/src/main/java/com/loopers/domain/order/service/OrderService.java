@@ -47,10 +47,19 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderInfo completeOrder(Long orderId) {
-        OrderModel orderModel = orderRepository.find(orderId)
+    public OrderInfo completeOrder(OrderCommand.Complete command) {
+        OrderModel orderModel = orderRepository.find(command.orderId())
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "주문을 찾을 수 없습니다."));
         orderModel.completeOrder();
+        return OrderInfo.from(orderModel);
+    }
+
+    @Transactional
+    public OrderInfo cancelOrder(OrderCommand.Cancel command) {
+        OrderModel orderModel = orderRepository.find(command.orderId())
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "주문을 찾을 수 없습니다."));
+        orderModel.canceled();
+        eventPublisher.publish(OrderEvent.Cancelled.from(orderModel, command.couponId()));
         return OrderInfo.from(orderModel);
     }
 

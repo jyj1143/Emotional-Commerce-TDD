@@ -1,6 +1,7 @@
 package com.loopers.domain.payment.service;
 
 import com.loopers.domain.payment.dto.PaymentCommand;
+import com.loopers.domain.payment.dto.PaymentEvent;
 import com.loopers.domain.payment.dto.PaymentInfo;
 import com.loopers.domain.payment.entity.PaymentGatewayTransactionModel;
 import com.loopers.domain.payment.entity.PaymentModel;
@@ -17,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
+    private final PaymentEventPublisher paymentEventPublisher;
+
 
     public PaymentInfo findByRefOrderId(Long orderId) {
         PaymentModel paymentModel = paymentRepository.findByOrderId(orderId).orElseThrow(
@@ -83,6 +86,9 @@ public class PaymentService {
 
         paymentTrx.complete();
         payment.complete();
+
+        paymentEventPublisher.publish(PaymentEvent.PaymentSucceeded.from(payment, paymentTrx));
+
         return PaymentInfo.of(payment);
     }
 
@@ -97,6 +103,10 @@ public class PaymentService {
 
         paymentTrx.fail(command.reason());
         payment.fail();
+
+        // 결제 실패 이벤트 발행
+        paymentEventPublisher.publish(PaymentEvent.PaymentFailed.from(payment, paymentTrx));
+
         return PaymentInfo.of(payment);
     }
 

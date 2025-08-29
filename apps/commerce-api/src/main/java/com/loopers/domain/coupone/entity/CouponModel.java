@@ -88,4 +88,9 @@ public class CouponModel extends BaseEntity {
         this.usedAt = LocalDateTime.now();
     }
 
+    public void restore() {
+        this.couponStatus = CouponStatus.AVAILABLE;
+        this.orderId = null;
+        this.usedAt = null;
+    }
 }
