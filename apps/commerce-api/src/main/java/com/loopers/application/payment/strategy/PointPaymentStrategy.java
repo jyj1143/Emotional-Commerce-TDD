@@ -46,14 +46,15 @@ public class PointPaymentStrategy implements PaymentStrategy<PointPaymentConditi
             pointService.usePoint(new UsePoint(condition.getUserId(), condition.getAmount()));
             //  트랜잭션 상태 완료로 변경
             PaymentInfo success = paymentService.success(new Success(condition.getOrderId(), transactionKey));
-            return PaymentResult.from(success);
+            return new PaymentResult(success.id(), success.paymentStatus(), transactionKey, null);
         } catch (CoreException e) {
             PaymentInfo fail = paymentService.fail(new Fail(condition.getOrderId(), transactionKey, e.getMessage()));
-            return PaymentResult.from(fail);
+            return new PaymentResult(fail.id(), fail.paymentStatus(), transactionKey, e.getMessage());
+
         } catch (Exception e) {
             PaymentInfo fail = paymentService.fail(
                 new Fail(condition.getOrderId(), transactionKey, "포인트 결제 중 오류가 발생했습니다: " + e.getMessage()));
-            return PaymentResult.from(fail);
+            return new PaymentResult(fail.id(), fail.paymentStatus(), transactionKey, e.getMessage());
         }
     }
 

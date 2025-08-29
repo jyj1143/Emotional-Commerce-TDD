@@ -71,7 +71,7 @@ public class CardPaymentStrategy implements PaymentStrategy<CardPaymentCondition
             log.info("카드 결제 성공 - 주문ID: {}, 트랜잭션키: {}",
                     condition.getOrderId(), gatewayResponse.transactionKey());
 
-            return PaymentResult.from(success);
+            return new PaymentResult(success.id(), success.paymentStatus(), gatewayResponse.transactionKey(), null);
         } else {
             // 실패 처리
             PaymentInfo fail = paymentService.fail(new PaymentCommand.Fail(
@@ -83,7 +83,7 @@ public class CardPaymentStrategy implements PaymentStrategy<CardPaymentCondition
             log.warn("카드 결제 실패 - 주문ID: {}, 사유: {}",
                     condition.getOrderId(), gatewayResponse.reason());
 
-            return PaymentResult.from(fail);
+            return new PaymentResult(fail.id(), fail.paymentStatus(), gatewayResponse.transactionKey(), gatewayResponse.reason());
         }
     }
 }

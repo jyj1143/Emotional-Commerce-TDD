@@ -38,28 +38,8 @@ public class PaymentFacade {
 
     public TransactionResult processPayment(PaymentCriteria.PgPay criteria) {
         PaymentInfo paymentInfo = paymentService.findByRefOrderId(criteria.orderId());
-
-        paymentService.readyPaymentGatewayTransaction(
-                new ReadyTransaction(
-                        paymentInfo.id(),
-                        paymentInfo.orderId(),
-                        null, // 트랜잭션 키는 결제 게이트웨이에서 생성됨
-                        paymentInfo.paymentStatus(),
-                        paymentInfo.amount(),
-                        criteria.cardType(),
-                        criteria.cardNo()
-                )
-        );
-
-        PaymentGatewayInfo.Transaction gatewayResponse =
-                paymentGatewayAdapter.processPayment(criteria.toPaymentCommand());
-
-        if (gatewayResponse != null && PaymentStatus.COMPLETED.name().equals(gatewayResponse.status().name())) {
-            paymentService.completePayment(criteria.orderId());
-        }
-        executePaymentStrategy(paymentInfo, criteria);
-
-        return TransactionResult.from(gatewayResponse);
+        PaymentResult paymentResult = executePaymentStrategy(paymentInfo, criteria);
+        return new TransactionResult(paymentResult.transactionKey(), paymentResult.paymentStatus(), paymentResult.reason());
     }
 
     private PaymentResult executePaymentStrategy(PaymentInfo paymentInfo, PaymentCriteria.PgPay criteria) {
