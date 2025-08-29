@@ -60,7 +60,7 @@ public class CouponService {
     }
 
     @Transactional
-    public CouponDisCountInfo apply(CouponCommand.Apply command) {
+    public CouponDisCountInfo getTotalPrice(CouponCommand.Calculate command) {
         Long totalPrice = command.totalPrice();
         Long finalPrice = totalPrice;
 
@@ -68,9 +68,6 @@ public class CouponService {
         if (command.couponId() != null) {
             Long discountAmount = calculateDiscount(command.couponId(), command.userId(), totalPrice);
             finalPrice = Math.max(0, totalPrice - discountAmount);
-
-            // 쿠폰 사용 처리
-            useCoupon(new CouponCommand.UseCoupon(command.couponId(), command.orderId(), command.userId()));
         }
         return CouponDisCountInfo.from(command.couponId(), finalPrice);
     }

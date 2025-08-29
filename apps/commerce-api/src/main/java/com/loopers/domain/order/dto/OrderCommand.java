@@ -7,6 +7,7 @@ public record OrderCommand() {
 
     public record Order(
         Long userId,
+        Long couponId,
         List<OrderItem> orderItem
     ) {
         public record OrderItem(
@@ -18,6 +19,14 @@ public record OrderCommand() {
                 return OrderItemModel.of(quantity, purchasePrice, refProductSkuId);
             }
         }
+    }
+
+    public record PendingPayment(
+        Long orderId,
+        Long couponId,
+        Long finalPrice
+    ) {
+
     }
 
 

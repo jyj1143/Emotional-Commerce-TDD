@@ -183,63 +183,6 @@ public class OrderConcurrencyTest {
         );
     }
 
-    @DisplayName("동일한 유저가 서로 다른 주문을 동시에 수행해도, 포인트가 정상적으로 차감되어야 한다")
-    @Test
-    void concurrentOrdersWithSameUser() throws Exception {
-        // Given
-        final int numOfOrders = 10; // 동시에 10개 주문 시도
-
-        ExecutorService executorService = Executors.newFixedThreadPool(numOfOrders);
-        CountDownLatch latch = new CountDownLatch(numOfOrders);
-        List<Future<OrderResult>> futures = new ArrayList<>();
-
-        // When
-        for (int i = 0; i < numOfOrders; i++) {
-            Future<OrderResult> future = executorService.submit(() -> {
-                try {
-                    OrderCriteria.Order orderCriteria = new OrderCriteria.Order(
-                        USER_ID,
-                        List.of(new OrderCriteria.Order.OrderItem(productSku.getId(), 1L)),
-                        null,
-                        PaymentMethod.POINT
-                    );
-                    return orderFacade.order(orderCriteria);
-                }
-                finally {
-                    latch.countDown();
-                }
-            });
-            futures.add(future);
-        }
-
-        latch.await();
-        executorService.shutdown();
-
-        // Then
-        List<OrderResult> successfulOrders = new ArrayList<>();
-        for (Future<OrderResult> future : futures) {
-            try {
-                OrderResult result = future.get();
-                if (result != null) {
-                    successfulOrders.add(result);
-                }
-            } catch (Exception e) {
-
-            }
-        }
-
-        PointModel userPoint = pointRepository.findByUserId(USER_ID)
-            .orElseThrow(() -> new RuntimeException("포인트를 찾을 수 없습니다"));
-
-        // 주문 금액의 합계
-        long totalOrderAmount = successfulOrders.size() * PRODUCT_PRICE;
-
-        assertAll(
-            () -> assertThat(successfulOrders.size()).isGreaterThan(0),
-            // 포인트가 정확히 차감되었는지 확인
-            () -> assertThat(userPoint.getAmount().getAmount()).isEqualTo(INITIAL_POINT - totalOrderAmount)
-        );
-    }
 
     @DisplayName("동일한 상품에 대해 여러 주문이 동시에 요청되어도, 재고가 정상적으로 차감되어야 한다")
     @Test

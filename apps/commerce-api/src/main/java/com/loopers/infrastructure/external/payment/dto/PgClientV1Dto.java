@@ -27,7 +27,8 @@ public record PgClientV1Dto() {
             return new PaymentGatewayInfo.Transaction(
                 transactionKey,
                 status.toPaymentStatus(),
-                reason
+                reason,
+                true
             );
         }
     }
@@ -35,7 +36,7 @@ public record PgClientV1Dto() {
     // 결제 정보 확인 응답
     public record TransactionDetailResponse(
         String transactionKey,
-        String orderId,
+        Long orderId,
         CardTypeDto cardType,
         String cardNo,
         String amount,
