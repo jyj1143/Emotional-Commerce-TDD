@@ -11,7 +11,6 @@ import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
-import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,30 +30,68 @@ public class PaymentGatewaySimulator implements PaymentGatewayAdapter {
     @Retry(name = "paymentRetry", fallbackMethod = "processPaymentFallback")
     @CircuitBreaker(name = "pgClient", fallbackMethod = "processPaymentFallback")
     @Override
-    public Transaction processPayment(Payment command) {
-        PgClientV1Dto.PaymentRequest request = new PgClientV1Dto.PaymentRequest(
-            command.orderId(),
-            command.cardType().name(),
-            command.cardNo(),
-            command.amount(),
+    public Transaction processPayment(Payment paymentCommand) {
+        PgClientV1Dto.PaymentRequest paymentRequest =  new PgClientV1Dto.PaymentRequest(
+            paymentCommand.orderId(),
+            paymentCommand.cardType().name(),
+            paymentCommand.cardNo(),
+            paymentCommand.amount(),
             callbackUrl
         );
+
         // PG 클라이언트 호출 및 응답 처리
-        PaymentClientApiResponse<PgClientV1Dto.TransactionResponse> response = pgV1Client.processPayment(storeId, request);
-        PgClientV1Dto.TransactionResponse transactionResponse = response.data();
-        return transactionResponse.toTransaction();
+        PaymentClientApiResponse<PgClientV1Dto.TransactionResponse> pgResponse =
+            pgV1Client.processPayment(storeId, paymentRequest);
+
+        return pgResponse.data().toTransaction();
     }
 
-    public Transaction processPaymentFallback(Payment command, Throwable t) {
-        log.error("결제 처리 실패 - 폴백 메소드 실행: {}", t.getMessage());
-        if (t instanceof PaymentClientException e) {
-            if (e.getHttpStatus().is4xxClientError()) {
-                throw new CoreException(ErrorType.BAD_REQUEST,
-                    "결제 요청이 올바르지 않습니다: " + e.getCustomMessage());
-            }
+    /**
+     * PaymentClientException 발생 시 폴백 처리
+     */
+    public Transaction processPaymentFallback(Payment paymentCommand, PaymentClientException exception) {
+        // HTTP 상태 코드에 따른 메시지 결정
+        String errorMessage;
+        int statusCode = exception.getHttpStatus().value();
+
+        if (isClientError(statusCode)) {
+            errorMessage = exception.getMessage();
+        } else {
+            errorMessage = "결제 서버와의 통신 중 일시적인 오류가 발생했습니다. 잠시 후에 다시 시도해 주시기 바랍니다.";
         }
-        throw new CoreException(ErrorType.INTERNAL_ERROR,
-            "결제 서비스에 일시적인 문제가 발생했습니다. 잠시 후 다시 시도해주세요.");
+
+        return createFailedTransaction(exception, errorMessage);
+    }
+
+    /**
+     * 일반 Exception 발생 시 폴백 처리
+     */
+    public Transaction processPaymentFallback(Payment paymentCommand, Exception exception) {
+        String errorMessage = "결제 서비스 연결 중 기술적인 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+        return createFailedTransaction(exception, errorMessage);
+    }
+
+    /**
+     * 실패한 트랜잭션 객체 생성 및 로깅
+     */
+    private Transaction createFailedTransaction(Exception exception, String errorMessage) {
+        log.error("결제 처리 폴백 실행 - 원인: {}", exception.getMessage());
+
+        if (exception instanceof PaymentClientException clientException) {
+            log.error("PG 시뮬레이터 응답 오류 - 상태코드: {}, 에러타입: {}, 상세내용: {}",
+                clientException.getHttpStatus(), clientException.getErrorType(), clientException.getMessage());
+        } else {
+            log.error("결제 처리 중 예외 발생 - 예외 유형: {}", exception.getClass().getSimpleName(), exception);
+        }
+
+        return new Transaction(null, null, errorMessage, false);
+    }
+
+    /**
+     * 클라이언트 에러인지 확인 (400번대)
+     */
+    private boolean isClientError(int statusCode) {
+        return statusCode >= 400 && statusCode < 500;
     }
 
     @Retry(name = "transactionRetry", fallbackMethod = "getTransactionFallback")

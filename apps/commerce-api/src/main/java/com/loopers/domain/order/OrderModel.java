@@ -2,11 +2,14 @@ package com.loopers.domain.order;
 
 
 import com.loopers.domain.BaseEntity;
+import com.loopers.domain.common.vo.Money;
 import com.loopers.domain.order.enums.OrderStatus;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
+import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -33,6 +36,10 @@ public class OrderModel extends BaseEntity {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItemModel> orderItemModels = new ArrayList<>();
 
+    @Embedded
+    @AttributeOverride(name = "amount", column = @Column(name = "total_price", nullable = false))
+    private Money totalPrice;
+
     private OrderModel(Long refUserId, List<OrderItemModel> orderItemModels, OrderStatus status) {
         if (status == null) {
             throw new CoreException(ErrorType.BAD_REQUEST, "주문상태는 필수 값입니다.");
@@ -47,6 +54,7 @@ public class OrderModel extends BaseEntity {
         this.refUserId = refUserId;
         orderItemModels.forEach(this::addOrderItem);
         this.status = status;
+        this.totalPrice = Money.of(calculateOriginTotalPrice());
     }
 
     public static OrderModel of(Long refUserId, List<OrderItemModel> orderItemModels, OrderStatus status) {
@@ -58,7 +66,7 @@ public class OrderModel extends BaseEntity {
         item.assignToOrderModel(this);
     }
 
-    public Long calculateTotalPrice() {
+    public Long calculateOriginTotalPrice() {
         return orderItemModels.stream()
             .map(OrderItemModel::calculateTotalPrice)
             .reduce(0L, Long::sum );
@@ -67,4 +75,18 @@ public class OrderModel extends BaseEntity {
     public void completeOrder() {
         this.status = OrderStatus.ORDER_SUCCESS;
     }
+
+    public void canceled() {
+        this.status = OrderStatus.CANCELED;
+    }
+
+    public void pendingPayment(Long finalPrice) {
+        if (finalPrice == null || finalPrice < 0) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "최종 가격은 음수가 될 수 없습니다.");
+        }
+
+        this.totalPrice = Money.of(finalPrice);
+        this.status = OrderStatus.PENDING_PAYMENT;
+    }
+
 }

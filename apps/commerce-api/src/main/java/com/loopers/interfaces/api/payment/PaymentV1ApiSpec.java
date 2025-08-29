@@ -18,7 +18,7 @@ public interface PaymentV1ApiSpec {
             summary = "결제 콜백 URL",
             description = "결제 콜백 URL"
     )
-    ApiResponse<Void> callback(
+    ApiResponse<?> callback(
             @RequestBody PaymentV1Dto.CallbackRequest request);
 
 }

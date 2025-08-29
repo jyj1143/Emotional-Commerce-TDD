@@ -2,6 +2,7 @@ package com.loopers.domain.like.service;
 
 import com.loopers.domain.like.LikeModel;
 import com.loopers.domain.like.dto.LikeCommand;
+import com.loopers.domain.like.dto.LikeEvent;
 import com.loopers.domain.like.enums.LikeType;
 import com.loopers.domain.like.repository.LikeRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class LikeService {
 
     private final LikeRepository likeRepository;
+    public final LikeEventPublisher likeEventPublisher;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW, noRollbackFor = DataIntegrityViolationException.class)
     public void like(LikeCommand.Like command) {
@@ -27,6 +29,7 @@ public class LikeService {
         try {
             LikeModel like = LikeModel.of(command.userId(), command.targetId(), command.likeType());
             likeRepository.save(like);
+            likeEventPublisher.publish(LikeEvent.Like.of(like.getTargetId(), like.getLikeType()));
         } catch (DataIntegrityViolationException e) {
             // 동시성 문제로 인한 중복 등록 시도 - 무시
             // 이 예외는 롤백되지 않음 (noRollbackFor 설정)
@@ -37,6 +40,7 @@ public class LikeService {
     @Transactional
     public void unlike(LikeCommand.Unlike command) {
         likeRepository.deleteWithLock(command.userId(), command.targetId(), command.likeType());
+        likeEventPublisher.publish(LikeEvent.UnLike.of(command.targetId(), command.likeType()));
     }
 
     public Long count(Long targetId, LikeType likeType) {

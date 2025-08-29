@@ -11,7 +11,6 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class ProductSummaryRepositoryImpl implements ProductSummaryRepository {
     private final ProductQueryDslRepositoryImpl productQueryDslRepository;
-    private final ProductJpaRepository productJpaRepository;
 
     @Override
     public PageResult<ProductSummaryInfo> findAll(ProductCommand.ProductSummary criteria) {

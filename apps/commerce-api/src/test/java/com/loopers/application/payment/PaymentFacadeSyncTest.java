@@ -275,37 +275,6 @@ public class PaymentFacadeSyncTest  {
                     .containsOnly(PaymentStatus.PENDING);
         }
 
-        @Test
-        @DisplayName("특정 시간 이전의 PENDING 트랜잭션들을 조회할 수 있다")
-        void findPendingTransactionsBefore() {
-            // Given
-            PaymentInfo paymentInfo = paymentService.findByRefOrderId(orderResult.id());
-            String transactionKey = "TXN_OLD_PENDING_" + System.currentTimeMillis();
-
-            paymentService.readyPaymentGatewayTransaction(
-                    new PaymentCommand.ReadyTransaction(
-                            paymentInfo.id(),
-                            paymentInfo.orderId(),
-                            transactionKey,
-                            PaymentStatus.PENDING,
-                            paymentInfo.amount(),
-                            CardType.SAMSUNG,
-                            "1234-5678-1234-5678"
-                    )
-            );
-
-            // When - ZonedDateTime 사용
-            ZonedDateTime futureTime = ZonedDateTime.now().plusMinutes(1);
-            List<PaymentGatewayTransactionModel> oldPendingTransactions =
-                    paymentRepository.findPendingTransactionsBefore(futureTime);
-
-            // Then
-            assertThat(oldPendingTransactions).hasSizeGreaterThanOrEqualTo(1);
-            assertThat(oldPendingTransactions)
-                    .extracting(PaymentGatewayTransactionModel::getPaymentStatus)
-                    .containsOnly(PaymentStatus.PENDING);
-        }
-
 
         @Test
         @DisplayName("트랜잭션 키로 특정 트랜잭션을 조회할 수 있다")

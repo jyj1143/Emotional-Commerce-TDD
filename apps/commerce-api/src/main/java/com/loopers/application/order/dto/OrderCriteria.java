@@ -29,9 +29,12 @@ public record OrderCriteria() {
                 ))
                 .toList();
 
-            return new OrderCommand.Order(userId, items);
+            return new OrderCommand.Order(userId, couponId, items);
         }
 
+        public OrderCommand.PendingPayment toOrderCommand(Long orderId, Long finalPrice) {
+            return new OrderCommand.PendingPayment(orderId, couponId, finalPrice);
+        }
 
         public ProductSkuCommand.GetValidSku toProductCommand() {
             return new ProductSkuCommand.GetValidSku(
@@ -49,6 +52,7 @@ public record OrderCriteria() {
             Long skuId,
             Long quantity
         ) {
+
             public ProductSkuCommand.OrderSku toProductOption() {
                 return new ProductSkuCommand.OrderSku(skuId, quantity);
             }

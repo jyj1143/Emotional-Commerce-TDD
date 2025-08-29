@@ -13,7 +13,11 @@ import com.loopers.domain.coupone.repository.CouponRepository;
 import com.loopers.domain.coupone.service.CouponService;
 import com.loopers.domain.inventory.InventoryModel;
 import com.loopers.domain.inventory.repository.InventoryRepository;
+import com.loopers.domain.order.enums.OrderStatus;
+import com.loopers.domain.payment.entity.PaymentModel;
 import com.loopers.domain.payment.enums.PaymentMethod;
+import com.loopers.domain.payment.enums.PaymentStatus;
+import com.loopers.domain.payment.repository.PaymentRepository;
 import com.loopers.domain.point.PointModel;
 import com.loopers.domain.point.repository.PointRepository;
 import com.loopers.domain.point.service.PointService;
@@ -35,8 +39,9 @@ import com.loopers.domain.coupone.entity.CouponModel;
 import com.loopers.domain.coupone.enums.CouponStatus;
 import com.loopers.domain.point.service.dto.PointCommand;
 import com.loopers.support.error.CoreException;
-import static org.junit.jupiter.api.Assertions.*;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
 
 @SpringBootTest
@@ -64,7 +69,7 @@ public class OrderFacadeIntegrationTest {
     private CouponRepository couponRepository;
 
     @Autowired
-    private PointService pointService;
+    private PaymentRepository paymentRepository;
 
     @Autowired
     private DatabaseCleanUp databaseCleanUp;
@@ -123,7 +128,7 @@ public class OrderFacadeIntegrationTest {
     @Nested
     class OrderPlace {
 
-        @DisplayName("주문 성공 시, 모든 처리는 정상 반영되어야 한다")
+        @DisplayName("주문 정보가 정상적으로 주어지면, 주문 정보를 저장한다.")
         @Test
         void orderSuccess_shouldUpdateAllResources() {
             // Given
@@ -138,27 +143,25 @@ public class OrderFacadeIntegrationTest {
             OrderResult result = orderFacade.order(orderCriteria);
 
             // Then
-            // 주문이 성공했는지 확인
-            assertNotNull(result);
-            assertNotNull(result.id());
-            assertEquals(USER_ID, result.userId());
-
-            // 재고가 차감되었는지 확인
+            // 재고가 차감 확인
             InventoryModel updatedInventory = inventoryRepository.find(productSku.getId())
                 .orElseThrow(() -> new RuntimeException("재고를 찾을 수 없습니다"));
-            assertEquals(INITIAL_INVENTORY - 1, updatedInventory.getQuantity().getQuantity());
 
-            // 포인트가 차감되었는지 확인
-            PointModel updatedPoint = pointRepository.findByUserId(USER_ID)
-                .orElseThrow(() -> new RuntimeException("포인트를 찾을 수 없습니다"));
-
-            // 할인 금액 5000원을 적용하여 5000원만 차감되었는지 확인
-            assertEquals(INITIAL_POINT - (PRODUCT_PRICE - 5000), updatedPoint.getAmount().getAmount());
-
-            // 쿠폰이 사용되었는지 확인
+            // 쿠폰이 사용 확인
             CouponModel usedCoupon = couponRepository.find(couponId).get();
-            assertEquals(CouponStatus.USED, usedCoupon.getCouponStatus());
-            assertEquals(result.id(), usedCoupon.getOrderId());
+
+            PaymentModel paymentModel = paymentRepository.findByOrderId(result.id()).get();
+
+            assertAll(
+                () -> assertNotNull(result),
+                () -> assertNotNull(result.id()),
+                () -> assertEquals(USER_ID, result.userId()),
+                () -> assertEquals(CouponStatus.USED, usedCoupon.getCouponStatus()),
+                () -> assertThat(result.status()).isEqualTo(OrderStatus.PENDING),
+                () -> assertEquals(result.id(), usedCoupon.getOrderId()),
+                () -> assertEquals(INITIAL_INVENTORY - 1, updatedInventory.getQuantity().getQuantity()),
+                () -> assertEquals(PaymentStatus.PENDING, paymentModel.getPaymentStatus())
+            );
         }
 
         @DisplayName("사용 불가능한 쿠폰일 경우 주문은 실패해야 한다")
@@ -215,34 +218,6 @@ public class OrderFacadeIntegrationTest {
             assertEquals(CouponStatus.AVAILABLE, unusedCoupon.getCouponStatus());
         }
 
-        @DisplayName("포인트가 부족할 경우 주문은 실패해야 한다")
-        @Test
-        void orderWithInsufficientPoint_shouldFail() {
-            // Given
-            pointService.usePoint(new PointCommand.UsePoint(USER_ID, INITIAL_POINT - 100));
-
-            OrderCriteria.Order orderCriteria = new OrderCriteria.Order(
-                USER_ID,
-                List.of(new OrderCriteria.Order.OrderItem(productSku.getId(), 1L)),
-                null,
-                PaymentMethod.POINT
-            );
-
-            // When & Then
-            CoreException exception = assertThrows(CoreException.class, () -> {
-                orderFacade.order(orderCriteria);
-            });
-            assertTrue(exception.getMessage().contains("금액이 부족 합니다."));
-
-
-            // 재고가 차감되지 않았는지 확인
-            InventoryModel unchangedInventory = inventoryRepository.find(productSku.getId()).orElseThrow();
-            assertEquals(INITIAL_INVENTORY, unchangedInventory.getQuantity().getQuantity());
-
-            // 쿠폰이 사용되지 않았는지 확인
-            CouponModel unusedCoupon = couponRepository.find(couponId).orElseThrow();
-            assertEquals(CouponStatus.AVAILABLE, unusedCoupon.getCouponStatus());
-        }
 
         @DisplayName("존재하지 않는 쿠폰일 경우 주문은 실패해야 한다")
         @Test

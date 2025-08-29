@@ -3,9 +3,8 @@ package com.loopers.application.order;
 import com.loopers.application.order.dto.OrderCriteria;
 import com.loopers.application.order.dto.OrderResult;
 import com.loopers.domain.coupone.dto.CouponCommand;
+import com.loopers.domain.coupone.dto.CouponDisCountInfo;
 import com.loopers.domain.coupone.service.CouponService;
-import com.loopers.domain.inventory.dto.InventoryCommand;
-import com.loopers.domain.inventory.service.InventoryService;
 import com.loopers.domain.order.dto.OrderInfo;
 import com.loopers.domain.order.service.OrderService;
 import com.loopers.domain.payment.dto.PaymentCommand;
@@ -23,10 +22,15 @@ public class OrderFacade {
 
     private final OrderService orderService;
     private final PaymentService paymentService;
-    private final InventoryService inventoryService;
     private final ProductSkuService productSkuService;
     private final CouponService couponService;
 
+    /**
+     * 주문 프로세스 흐름 - 재고 선점 선차감 방식 적용:
+     * 1. 주문 생성 단계: 데이터 유효성 검증, 쿠폰 사용 처리, 재고 선차감
+     * 2. 결제 완료 단계: 포인트 적립/차감 및 기타 리소스 반영
+     * 미결제 시 롤백 정책: 일정 시간 후 미결제된 주문의 재고 및 쿠폰은 원복처리
+     */
     @Transactional
     public OrderResult order(OrderCriteria.Order criteria) {
 
@@ -36,39 +40,14 @@ public class OrderFacade {
         // 주문 생성
         OrderInfo orderInfo = orderService.placeOrder(criteria.toOrderCommand(productSkuInfos));
 
-        // 쿠폰 적용 및 최종 결제금액
-        Long finalPrice = getFinalPrice(criteria, orderInfo);
-
-        // 재고 감소
-        criteria.orderItems().forEach(item ->
-            inventoryService.decrease(new InventoryCommand.DecreaseStock(
-                item.skuId(),
-                item.quantity()))
+        // 쿠폰 최종 결제금액
+        CouponDisCountInfo couponDisCountInfo = couponService.getTotalPrice(
+            new CouponCommand.Calculate(criteria.couponId(), criteria.userId(), orderInfo.totalPrice())
         );
 
-        // 주문 완료
-        OrderInfo successOrder = orderService.completeOrder(orderInfo.id());
+        orderService.pendingPayment(criteria.toOrderCommand(orderInfo.id(), couponDisCountInfo.discountApplyPrice()));
 
-        // 결제 준비
-        paymentService.ready(new PaymentCommand.Pay(criteria.userId(), orderInfo.id(), criteria.paymentMethod(), finalPrice));
-
-        return OrderResult.from(successOrder);
-    }
-
-    private Long getFinalPrice(OrderCriteria.Order criteria, OrderInfo orderInfo) {
-        Long totalPrice = orderInfo.totalPrice();
-        Long finalPrice = totalPrice;
-
-        // 쿠폰 적용
-        if (criteria.couponId() != null) {
-            Long discountAmount = couponService.calculateDiscount(criteria.couponId(), criteria.userId(), totalPrice);
-            finalPrice = Math.max(0, totalPrice - discountAmount);
-
-            // 쿠폰 사용 처리
-            couponService.useCoupon(new CouponCommand.UseCoupon(
-                criteria.couponId(), orderInfo.id(), criteria.userId()));
-        }
-        return finalPrice;
+        return OrderResult.from(orderInfo);
     }
 
 }

@@ -27,7 +27,7 @@ public class PaymentModel extends BaseEntity {
     @Column(name = "ref_order_id", nullable = false)
     private Long refOrderId; // 주문 ID
 
-    @Column(name = "payment_method", nullable = false)
+    @Column(name = "payment_method")
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
 
@@ -45,9 +45,6 @@ public class PaymentModel extends BaseEntity {
         if (refOrderId == null) {
             throw new CoreException(ErrorType.BAD_REQUEST, "주문 ID는 필수 값입니다.");
         }
-        if (paymentMethod == null) {
-            throw new CoreException(ErrorType.BAD_REQUEST, "결제 방법은 필수 값입니다.");
-        }
         if (paymentStatus == null) {
             throw new CoreException(ErrorType.BAD_REQUEST, "결제 상태는 필수 값입니다.");
         }
@@ -58,16 +55,17 @@ public class PaymentModel extends BaseEntity {
         this.amount = Money.of(amount);
     }
 
-    public static PaymentModel of(Long refUserId, Long refOrderId, PaymentMethod paymentMethod, PaymentStatus paymentStatus, Long amount) {
-        return new PaymentModel(refUserId,refOrderId, paymentMethod, paymentStatus, amount);
+    public static PaymentModel of(Long refUserId, Long refOrderId, PaymentMethod paymentMethod, PaymentStatus paymentStatus,
+        Long amount) {
+        return new PaymentModel(refUserId, refOrderId, paymentMethod, paymentStatus, amount);
     }
 
-    public void complete(){
+    public void complete() {
         this.paymentStatus = PaymentStatus.COMPLETED;
     }
 
     public void fail() {
-        this.paymentStatus = PaymentStatus.COMPLETED;
+        this.paymentStatus = PaymentStatus.FAILED;
     }
 
     public boolean isPending() {

@@ -9,7 +9,8 @@ public record OrderInfo(
     Long userId,
     OrderStatus status,
     Long totalPrice,
-    List<OrderItem> orderItems
+    List<OrderItem> orderItems,
+    Long finalPrice
 ) {
 
     public static OrderInfo from(final OrderModel order) {
@@ -17,7 +18,7 @@ public record OrderInfo(
             order.getId(),
             order.getRefUserId(),
             order.getStatus(),
-            order.calculateTotalPrice(),
+            order.calculateOriginTotalPrice(),
             order.getOrderItemModels().stream().
                 map(item ->
                     new OrderItem(
@@ -27,7 +28,9 @@ public record OrderInfo(
                         item.getPurchasePrice().getAmount(),
                         item.getRefProductSkuId()
                     )
-                ).toList());
+                ).toList(),
+            order.getTotalPrice().getAmount()
+            );
     }
 
 
