@@ -3,6 +3,7 @@ package com.loopers.domain.coupone.service;
 import com.loopers.domain.coupone.DiscountPolicy;
 import com.loopers.domain.coupone.DiscountPolicyFactory;
 import com.loopers.domain.coupone.dto.CouponCommand;
+import com.loopers.domain.coupone.dto.CouponDisCountInfo;
 import com.loopers.domain.coupone.dto.CouponInfo;
 import com.loopers.domain.coupone.entity.CouponModel;
 import com.loopers.domain.coupone.entity.CouponPolicyModel;
@@ -59,6 +60,19 @@ public class CouponService {
     }
 
     @Transactional
+    public CouponDisCountInfo getTotalPrice(CouponCommand.Calculate command) {
+        Long totalPrice = command.totalPrice();
+        Long finalPrice = totalPrice;
+
+        // 쿠폰 적용
+        if (command.couponId() != null) {
+            Long discountAmount = calculateDiscount(command.couponId(), command.userId(), totalPrice);
+            finalPrice = Math.max(0, totalPrice - discountAmount);
+        }
+        return CouponDisCountInfo.from(command.couponId(), finalPrice);
+    }
+
+    @Transactional
     public CouponInfo useCoupon(CouponCommand.UseCoupon command) {
         CouponModel couponModel = couponRepository.findWithLockByIdAndRefUserId(command.couponId(), command.userId())
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "쿠폰을 찾을 수 없습니다."));
@@ -67,6 +81,25 @@ public class CouponService {
 
         return CouponInfo.from(couponModel);
     }
+
+    @Transactional
+    public CouponInfo restoreCoupon(CouponCommand.RestoreCoupon command) {
+        CouponModel couponModel = couponRepository.findWithLockByIdAndRefUserId(command.couponId(), command.userId())
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "쿠폰을 찾을 수 없습니다."));
+
+        if (!couponModel.isUsed()) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "사용되지 않은 쿠폰은 복원할 수 없습니다.");
+        }
+
+        if (couponModel.isExpired()) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "만료된 쿠폰은 복원할 수 없습니다.");
+        }
+
+        couponModel.restore();
+
+        return CouponInfo.from(couponModel);
+    }
+
 
     @Transactional(readOnly = true)
     public PageResult<CouponInfo> getCoupons(CouponCommand.GetMyCoupons command) {

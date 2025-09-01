@@ -1,6 +1,7 @@
 package com.loopers.domain.payment.service;
 
 import com.loopers.domain.payment.dto.PaymentCommand;
+import com.loopers.domain.payment.dto.PaymentEvent;
 import com.loopers.domain.payment.dto.PaymentInfo;
 import com.loopers.domain.payment.entity.PaymentGatewayTransactionModel;
 import com.loopers.domain.payment.entity.PaymentModel;
@@ -17,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
+    private final PaymentEventPublisher paymentEventPublisher;
+
 
     public PaymentInfo findByRefOrderId(Long orderId) {
         PaymentModel paymentModel = paymentRepository.findByOrderId(orderId).orElseThrow(
@@ -28,18 +31,22 @@ public class PaymentService {
     }
 
     @Transactional
-    public PaymentModel pay(PaymentCommand.Pay command) {
-        PaymentModel paymentModel = PaymentModel.of(command.userId(),command.orderId(), command.method(), PaymentStatus.PENDING, command.amount());
-        paymentRepository.save(paymentModel);
-        paymentModel.complete();
-        return paymentModel;
+    public PaymentInfo pay(PaymentCommand.Pay command) {
+        PaymentModel payment = paymentRepository.findByOrderId(command.orderId())
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "존재하지 않는 결제입니다."));
+        payment.complete();
+        return PaymentInfo.of(
+            payment
+        );
     }
 
     @Transactional
-    public PaymentModel ready(PaymentCommand.Pay command) {
-        PaymentModel paymentModel = PaymentModel.of(command.userId(),command.orderId(), command.method(), PaymentStatus.PENDING, command.amount());
+    public PaymentInfo ready(PaymentCommand.Ready command) {
+        PaymentModel paymentModel = PaymentModel.of(command.userId(),command.orderId(), null, PaymentStatus.CREATED, command.amount());
         paymentRepository.save(paymentModel);
-        return paymentModel;
+        return PaymentInfo.of(
+            paymentModel
+        );
     }
 
     @Transactional
@@ -65,6 +72,42 @@ public class PaymentService {
         payment.complete();
 
         return transaction;
+    }
+
+
+    @Transactional
+    public PaymentInfo success(PaymentCommand.Success command) {
+        PaymentGatewayTransactionModel paymentTrx = paymentRepository.findTransactionByKey(
+                command.transactionKey())
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "해당하는 결제 트랜잭션 정보가 없습니다."));
+
+        PaymentModel payment = paymentRepository.findByOrderId(command.orderId())
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "해당하는 결제 정보가 없습니다."));
+
+        paymentTrx.complete();
+        payment.complete();
+
+        paymentEventPublisher.publish(PaymentEvent.PaymentSucceeded.from(payment, paymentTrx));
+
+        return PaymentInfo.of(payment);
+    }
+
+    @Transactional
+    public PaymentInfo fail(PaymentCommand.Fail command) {
+        PaymentGatewayTransactionModel paymentTrx = paymentRepository.findTransactionByKey(
+                command.transactionKey())
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "해당하는 결제 트랜잭션 정보가 없습니다."));
+
+        PaymentModel payment = paymentRepository.findByOrderId(command.orderId())
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "해당하는 결제 정보가 없습니다."));
+
+        paymentTrx.fail(command.reason());
+        payment.fail();
+
+        // 결제 실패 이벤트 발행
+        paymentEventPublisher.publish(PaymentEvent.PaymentFailed.from(payment, paymentTrx));
+
+        return PaymentInfo.of(payment);
     }
 
 }

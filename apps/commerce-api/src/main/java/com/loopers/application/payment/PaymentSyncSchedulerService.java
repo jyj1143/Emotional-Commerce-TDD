@@ -2,10 +2,12 @@ package com.loopers.application.payment;
 
 import com.loopers.domain.payment.adapter.PaymentGatewayAdapter;
 import com.loopers.domain.payment.adapter.PaymentGatewayInfo.TransactionDetail;
+import com.loopers.domain.payment.dto.PaymentCommand;
 import com.loopers.domain.payment.entity.PaymentGatewayTransactionModel;
 import com.loopers.domain.payment.entity.PaymentModel;
 import com.loopers.domain.payment.enums.PaymentStatus;
 import com.loopers.domain.payment.repository.PaymentRepository;
+import com.loopers.domain.payment.service.PaymentService;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +30,7 @@ public class PaymentSyncSchedulerService {
 
     private final PaymentRepository paymentRepository;
     private final PaymentGatewayAdapter paymentGatewayAdapter;
+    private final PaymentService paymentService;
 
     /**
      * 주기적으로 PENDING 상태인 결제 트랜잭션의 상태를 동기화합니다.
@@ -76,7 +79,10 @@ public class PaymentSyncSchedulerService {
     @CircuitBreaker(name = "transactionCircuitBreaker", fallbackMethod = "syncTransactionStatusFallback")
     public void syncTransactionStatus(String transactionKey) {
         TransactionDetail detail = paymentGatewayAdapter.getTransaction(transactionKey);
-        updateTransactionStatus(transactionKey, detail);
+        switch (detail.status()) {
+            case COMPLETED -> paymentService.success(new PaymentCommand.Success(detail.orderId(), detail.transactionKey()));
+            case FAILED -> paymentService.fail(new PaymentCommand.Fail(detail.orderId(), detail.transactionKey(), detail.reason()));
+        }
     }
 
     /**
@@ -86,50 +92,4 @@ public class PaymentSyncSchedulerService {
         log.warn("트랜잭션 상태 동기화 실패: {} - {}", transactionKey, t.getMessage());
     }
 
-    /**
-     * 트랜잭션 상태 업데이트
-     * PaymentGatewayTransactionModel과 연관된 PaymentModel의 상태를 함께 업데이트합니다.
-     */
-    private void updateTransactionStatus(String transactionKey, TransactionDetail detail) {
-        Optional<PaymentGatewayTransactionModel> transactionOpt = paymentRepository.findTransactionByKey(transactionKey);
-
-        transactionOpt.ifPresent(transaction -> {
-            // 상태가 변경된 경우에만 업데이트
-            if (transaction.getPaymentStatus() != detail.status()) {
-                // 게이트웨이 트랜잭션 상태 업데이트
-                updateTransactionModelStatus(transaction, detail.status(), transactionKey);
-
-                // 연관된 PaymentModel 상태 업데이트
-                updatePaymentModelStatus(transaction.getRefPaymentId(), detail.status());
-            }
-        });
-    }
-
-    /**
-     * PaymentGatewayTransactionModel 상태 업데이트
-     */
-    private void updateTransactionModelStatus(PaymentGatewayTransactionModel transaction, PaymentStatus newStatus, String transactionKey) {
-        transaction.updateStatus(newStatus);
-        paymentRepository.save(transaction);
-        log.info("게이트웨이 트랜잭션 상태 업데이트: {} -> {}", transactionKey, newStatus);
-    }
-
-    /**
-     * PaymentModel 상태 업데이트
-     */
-    private void updatePaymentModelStatus(Long paymentId, PaymentStatus newStatus) {
-        Optional<PaymentModel> paymentOpt = paymentRepository.findById(paymentId);
-
-        paymentOpt.ifPresent(payment -> {
-            if (payment.getPaymentStatus() != newStatus) {
-                if (newStatus == PaymentStatus.COMPLETED) {
-                    payment.complete();
-                } else if (newStatus == PaymentStatus.FAILED) {
-                    payment.fail();
-                }
-                paymentRepository.save(payment);
-                log.info("결제 상태 업데이트: ID={}, 상태={}", paymentId, newStatus);
-            }
-        });
-    }
 }

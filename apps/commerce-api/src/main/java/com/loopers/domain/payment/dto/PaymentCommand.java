@@ -6,6 +6,14 @@ import com.loopers.domain.payment.enums.PaymentStatus;
 
 public record PaymentCommand() {
 
+    public record Ready(
+        Long userId,
+        Long orderId,
+        Long amount
+    ) {
+
+    }
+
     public record Pay(
             Long userId,
             Long orderId,
@@ -35,6 +43,19 @@ public record PaymentCommand() {
         Long amount,
         CardType cardType,
         String cardNumber
+    ) {
+    }
+
+    public record Success(
+        Long orderId,
+        String transactionKey
+    ) {
+    }
+
+    public record Fail(
+        Long orderId,
+        String transactionKey,
+        String reason
     ) {
     }
 

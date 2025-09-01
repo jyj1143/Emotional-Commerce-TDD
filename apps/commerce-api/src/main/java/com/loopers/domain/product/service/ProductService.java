@@ -1,5 +1,8 @@
 package com.loopers.domain.product.service;
 
+
+import com.loopers.domain.product.dto.product.ProductEvent;
+import com.loopers.domain.product.dto.product.ProductInfo;
 import com.loopers.domain.product.entity.ProductModel;
 import com.loopers.domain.product.repository.ProductRepository;
 import com.loopers.infrastructure.product.dto.ProductInfo.ProductWithBrand;
@@ -16,10 +19,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final ProductEventPublisher productEventPublisher;
 
     @Transactional
-    public ProductModel save(ProductModel product) {
-        return productRepository.save(product);
+    public ProductInfo save(ProductModel product) {
+        ProductModel productModel = productRepository.save(product);
+        productEventPublisher.publish(ProductEvent.Register.from(productModel));
+        return ProductInfo.from(productModel);
     }
 
     @Transactional

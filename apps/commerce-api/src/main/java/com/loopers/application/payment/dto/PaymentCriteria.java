@@ -5,6 +5,7 @@ import com.loopers.domain.payment.dto.PaymentCommand;
 import com.loopers.domain.payment.enums.CardType;
 import com.loopers.domain.payment.enums.PaymentMethod;
 import com.loopers.domain.payment.enums.PaymentStatus;
+import com.loopers.domain.payment.enums.TransactionStatus;
 
 public record PaymentCriteria() {
 
@@ -24,7 +25,8 @@ public record PaymentCriteria() {
         Long orderId,
         CardType cardType,
         String cardNo,
-        Long amount
+        Long amount,
+        PaymentMethod paymentMethod
     ) {
 
         public PaymentGatewayCommand.Payment toPaymentCommand() {
@@ -41,9 +43,29 @@ public record PaymentCriteria() {
         PaymentStatus status,
         String reason
     ) {
+
         public PaymentCommand.Synchronize toPaymentCommand(
         ) {
             return new PaymentCommand.Synchronize(transactionKey, orderId, cardType, cardNo, amount, status, reason);
+        }
+    }
+
+    public record Conclude(
+        String transactionKey,
+        Long orderId,
+        CardType cardType,
+        String cardNo,
+        Long amount,
+        TransactionStatus status,
+        String reason
+    ) {
+
+        public PaymentCommand.Success toSuccessCommand() {
+            return new PaymentCommand.Success(orderId, transactionKey);
+        }
+
+        public PaymentCommand.Fail toFailCommand() {
+            return new PaymentCommand.Fail(orderId, transactionKey, reason);
         }
     }
 }

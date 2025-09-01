@@ -32,11 +32,11 @@ public class ProductSignalModel extends BaseEntity {
         return new ProductSignalModel(refProductId, likeCount);
     }
 
-    void increaseLikeCount() {
+    public void increaseLikeCount() {
         likeCount.plus(1L);
     }
 
-    void decreaseLikeCount() {
+    public void decreaseLikeCount() {
         likeCount.minus(1L);
     }
 

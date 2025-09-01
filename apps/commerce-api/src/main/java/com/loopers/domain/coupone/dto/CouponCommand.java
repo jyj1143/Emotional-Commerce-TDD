@@ -1,9 +1,14 @@
 package com.loopers.domain.coupone.dto;
 
-
-import com.loopers.domain.coupone.enums.CouponStatus;
-
 public record CouponCommand (){
+
+    public record Calculate(
+        Long couponId,
+        Long userId,
+        Long totalPrice
+    ){
+
+    }
 
     public record IssueCoupon(
         Long couponPolicyId,
@@ -25,5 +30,13 @@ public record CouponCommand (){
     ){
 
     }
+
+    public record RestoreCoupon(
+        Long couponId,
+        Long userId
+    ) {
+
+    }
+
 
 }
