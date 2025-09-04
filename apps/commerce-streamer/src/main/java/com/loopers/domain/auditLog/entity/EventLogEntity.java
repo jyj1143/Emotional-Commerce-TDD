@@ -15,8 +15,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Getter
-@Table(name = "audit_log")
-public class AuditLogEntity {
+@Table(name = "event_log")
+public class EventLogEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,8 +50,8 @@ public class AuditLogEntity {
     @Column(name = "created_at", nullable = false)
     private ZonedDateTime createdAt;
 
-    private AuditLogEntity(String eventId, String eventType, String topic, String groupId, String partitionKey,  String payload,
-        ZonedDateTime publishedAt, String version) {
+    private EventLogEntity(String eventId, String eventType, String topic, String groupId, String partitionKey, String payload,
+                           ZonedDateTime publishedAt, String version) {
         this.topic = topic;
         this.groupId = groupId;
         this.partitionKey = partitionKey;
@@ -63,10 +63,10 @@ public class AuditLogEntity {
         this.createdAt = ZonedDateTime.now();
     }
 
-    public static AuditLogEntity create(String eventId,String eventType, String topic, String groupId, String partitionKey,
-        String payload,
-        ZonedDateTime publishedAt, String version) {
-        return new AuditLogEntity(eventId, topic, groupId, partitionKey, eventType, payload, publishedAt, version);
+    public static EventLogEntity create(String eventId, String eventType, String topic, String groupId, String partitionKey,
+                                        String payload,
+                                        ZonedDateTime publishedAt, String version) {
+        return new EventLogEntity(eventId, topic, groupId, partitionKey, eventType, payload, publishedAt, version);
     }
 
 }

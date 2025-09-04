@@ -1,6 +1,6 @@
 package com.loopers.domain.auditLog.dto;
 
-import com.loopers.domain.auditLog.entity.AuditLogEntity;
+import com.loopers.domain.auditLog.entity.EventLogEntity;
 import java.time.ZonedDateTime;
 
 public record AuditLogCommand() {
@@ -15,8 +15,8 @@ public record AuditLogCommand() {
         ZonedDateTime publishedAt,
         String version
     ) {
-        public AuditLogEntity toEntity() {
-            return AuditLogEntity.create(eventId, eventType, topic, groupId, partitionKey, payload, publishedAt, version);
+        public EventLogEntity toEntity() {
+            return EventLogEntity.create(eventId, eventType, topic, groupId, partitionKey, payload, publishedAt, version);
         }
     }
 }
