@@ -37,7 +37,7 @@ public class ProductFacade {
     public ProductResult getProductDetail(ProductCriteria.GetProduct criteria) {
         ProductInfo productDetails = productCacheRepository.findProductDetail(criteria.productId())
             .orElseGet(() -> {
-                ProductModel product = productService.get(criteria.productId());
+                ProductModel product = productService.get(criteria.productId(), criteria.userId());
                 BrandModel brand = brandService.get(product.getRefBrandId());
                 Long likeCount = likeService.count(criteria.productId(), LikeType.PRODUCT);
 
