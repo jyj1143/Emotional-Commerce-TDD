@@ -46,9 +46,6 @@ public class ProductMetricsEntity {
     @Column(name = "like_count", nullable = false)
     private Long likeCount = 0L;
 
-    @Column(name = "click_count", nullable = false)
-    private Long clickCount = 0L;
-
     @Column(name = "view_count", nullable = false)
     private Long viewCount = 0L;
 
@@ -83,7 +80,6 @@ public class ProductMetricsEntity {
         this.productId = productId;
         this.metricsDate = metricsDate;
         this.likeCount = 0L;
-        this.clickCount = 0L;
         this.viewCount = 0L;
         this.salesCount = 0L;
         this.lastSoldAt = null;
@@ -119,12 +115,6 @@ public class ProductMetricsEntity {
         updateLastUpdatedAt();
     }
 
-    public void increaseClickCount() {
-        this.clickCount++;
-        updateLastClickedAt();
-        updateLastUpdatedAt();
-    }
-
     public void increaseViewCount() {
         this.viewCount++;
         updateLastViewedAt();
@@ -138,23 +128,18 @@ public class ProductMetricsEntity {
     }
 
     // 일괄 집계 업데이트 메소드 (upsert용)
-    public void updateMetrics(Long likeCount, Long clickCount, Long viewCount, Long salesCount) {
+    public void updateMetrics(Long likeCount, Long viewCount, Long salesCount) {
         this.likeCount = likeCount;
-        this.clickCount = clickCount;
         this.viewCount = viewCount;
         this.salesCount = salesCount;
         updateLastUpdatedAt();
     }
 
     // 변화량 업데이트 메소드
-    public void incrementMetrics(Long likeCountDelta, Long clickCountDelta, Long viewCountDelta, Long salesCountDelta) {
-        if (likeCountDelta != null && likeCountDelta > 0) {
+    public void incrementMetrics(Long likeCountDelta ,Long viewCountDelta, Long salesCountDelta) {
+        if (likeCountDelta != null) {
             this.likeCount += likeCountDelta;
             updateLastLikedAt();
-        }
-        if (clickCountDelta != null && clickCountDelta > 0) {
-            this.clickCount += clickCountDelta;
-            updateLastClickedAt();
         }
         if (viewCountDelta != null && viewCountDelta > 0) {
             this.viewCount += viewCountDelta;
@@ -182,10 +167,6 @@ public class ProductMetricsEntity {
 
     private void updateLastUnLikedAt() {
         this.lastUnLikedAt = LocalDateTime.now();
-    }
-
-    private void updateLastClickedAt() {
-        this.lastClickedAt = LocalDateTime.now();
     }
 
     private void updateLastUpdatedAt() {
