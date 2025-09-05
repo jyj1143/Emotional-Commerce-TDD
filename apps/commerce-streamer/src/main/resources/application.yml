@@ -25,9 +25,19 @@ spring:
       - logging.yml
       - monitoring.yml
 
-demo-kafka:
-  test:
-    topic-name: demo.internal.topic-v1
+kafka:
+  consumers:
+    audit-log:
+      group-id: audit-log-consumer-group
+      source-topic: audit.log-events.v1
+      dlq-topic: audit.log-events.dlq.v1
+
+    metrics-aggregation:
+      group-id: product-metrics-consumer-group
+      source-topic: product.signal-events.v1
+      dlq-topic: product.signal-events.dlq.v1
+
+
 
 ---
 spring:
@@ -35,11 +45,25 @@ spring:
     activate:
       on-profile: local, test
 
+server:
+  port: 8084
+
+management:
+  server:
+    port: 8085
+
 ---
 spring:
   config:
     activate:
       on-profile: dev
+
+server:
+  port: 8084
+
+management:
+  server:
+    port: 8085
 
 ---
 spring:
