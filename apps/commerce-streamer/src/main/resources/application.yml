@@ -27,17 +27,16 @@ spring:
 
 kafka:
   consumers:
-    audit-log:
-      group-id: audit-log-consumer-group
-      source-topic: audit.log-events.v1
-      dlq-topic: audit.log-events.dlq.v1
-
-    metrics-aggregation:
-      group-id: product-metrics-consumer-group
-      source-topic: product.signal-events.v1
-      dlq-topic: product.signal-events.dlq.v1
-
-
+    topics:
+      liked: outside.product-liked-events.v1
+      un-liked: outside.product-un-liked-events.v1
+      product-viewed: outside.product-viewed-events.v1
+      order-payment: outside.order-payment-events.v1
+      product-stock: outside.product-stock-events.v1
+    groups:
+      audit-log: audit-log-consumer-group
+      product-metrics: product-metrics-consumer-group
+      product: product-consumer-group
 
 ---
 spring:
