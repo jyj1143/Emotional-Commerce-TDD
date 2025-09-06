@@ -1,6 +1,5 @@
 package com.loopers.domain.product;
 
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -16,7 +15,7 @@ public class ProductCacheService {
     private final RedisTemplate<String, Object> redisTemplate;
 
     /**
-     * 재고가 0인 상품의 캐시를 무효화합니다.
+     * 상품의 캐시를 무효화합니다.
      */
     public void invalidateCacheForZeroStock(Long productSkuId) {
         String cacheKey = PRODUCT_DETAIL_PREFIX + productSkuId;

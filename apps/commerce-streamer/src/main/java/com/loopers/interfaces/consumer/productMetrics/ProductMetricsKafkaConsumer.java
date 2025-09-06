@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.loopers.confg.kafka.KafkaConfig;
 import com.loopers.domain.handledEvent.dto.HandledEventCommand;
 import com.loopers.domain.handledEvent.service.HandledEventService;
+import com.loopers.domain.product.ProductCacheService;
 import com.loopers.domain.productMetrics.dto.ProductMetricsCommand;
 import com.loopers.domain.productMetrics.service.ProductMetricsService;
 import com.loopers.interfaces.event.UserSignal.Liked;
@@ -24,6 +25,7 @@ public class ProductMetricsKafkaConsumer {
 
     private final HandledEventService handledEventService;
     private final ProductMetricsService productMetricsService;
+    private final ProductCacheService productCacheService;
     private final ObjectMapper objectMapper;
 
     @Value("${kafka.consumers.groups.product-metrics}")
@@ -54,6 +56,8 @@ public class ProductMetricsKafkaConsumer {
             productMetricsService.increaseDailyLikeCount(
                 new ProductMetricsCommand.IncreaseLikeCount(event.payload().productId()));
 
+            // 상품의 캐시를 무효화합니다.
+            productCacheService.invalidateCacheForZeroStock(event.payload().productId());
         }
         acknowledgment.acknowledge();
     }
@@ -83,6 +87,8 @@ public class ProductMetricsKafkaConsumer {
             productMetricsService.decreaseDailyLikeCount(
                 new ProductMetricsCommand.DecreaseLikeCount(event.payload().productId()));
 
+            // 상품의 캐시를 무효화합니다.
+            productCacheService.invalidateCacheForZeroStock(event.payload().productId());
         }
         acknowledgment.acknowledge();
     }
