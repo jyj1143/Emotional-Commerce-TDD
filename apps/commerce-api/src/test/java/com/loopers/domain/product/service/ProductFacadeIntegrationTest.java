@@ -66,7 +66,7 @@ public class ProductFacadeIntegrationTest {
 
 
             // when
-            ProductResult productDetail = productFacade.getProductDetail(new ProductCriteria.GetProduct(first.getId())  );
+            ProductResult productDetail = productFacade.getProductDetail(new ProductCriteria.GetProduct(first.getId(), null)  );
             assertAll(
                     () -> assertThat(productDetail.id()).isEqualTo(first.getId()),
                     () -> assertThat(productDetail.brandId()).isEqualTo(brandModel.getId()),

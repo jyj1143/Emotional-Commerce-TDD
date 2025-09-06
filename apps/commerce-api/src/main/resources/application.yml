@@ -24,6 +24,14 @@ spring:
       - logging.yml
       - monitoring.yml
 
+kafka:
+  topics:
+    liked: outside.product-liked-events.v1
+    un-liked: outside.product-un-liked-events.v1
+    product-viewed: outside.product-viewed-events.v1
+    product-stock: outside.product-stock-events.v1
+    order-payment: outside.order-payment-events.v1
+
 springdoc:
   use-fqn: true
   swagger-ui:

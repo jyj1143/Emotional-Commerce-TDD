@@ -2,6 +2,7 @@ package com.loopers.domain.product.service;
 
 
 import com.loopers.domain.product.dto.product.ProductEvent;
+import com.loopers.domain.product.dto.product.ProductGlobalEvent;
 import com.loopers.domain.product.dto.product.ProductInfo;
 import com.loopers.domain.product.entity.ProductModel;
 import com.loopers.domain.product.repository.ProductRepository;
@@ -20,6 +21,7 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final ProductEventPublisher productEventPublisher;
+    private final ProductGlobalV1EventPublisher productGlobalV1EventPublisher;
 
     @Transactional
     public ProductInfo save(ProductModel product) {
@@ -37,9 +39,13 @@ public class ProductService {
         return productRepository.findProductWithBrand();
     }
 
-    public ProductModel get(Long id) {
-        return productRepository.find(id)
-                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "해당 상품을 찾을 수 없습니다. id: " + id));
+    public ProductModel get(Long productId, Long userId) {
+
+        ProductModel productModel = productRepository.find(productId)
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "해당 상품을 찾을 수 없습니다. id: " + productId));
+        productGlobalV1EventPublisher.publish(ProductGlobalEvent.Viewed.from(productId, userId));
+
+        return productModel;
     }
 
 }

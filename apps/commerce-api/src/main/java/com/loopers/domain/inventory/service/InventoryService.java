@@ -3,6 +3,7 @@ package com.loopers.domain.inventory.service;
 import com.loopers.domain.inventory.InventoryModel;
 import com.loopers.domain.inventory.dto.InventoryCommand;
 import com.loopers.domain.inventory.dto.InventoryCommand.DecreaseStock;
+import com.loopers.domain.inventory.dto.InventoryGlobalEvent;
 import com.loopers.domain.inventory.repository.InventoryRepository;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class InventoryService {
 
     private final InventoryRepository inventoryRepository;
+    private final InventoryGlobalV1EventPublisher inventoryGlobalV1EventPublisher;
 
     @Transactional
     public void create(InventoryCommand.Create command) {
@@ -42,6 +44,11 @@ public class InventoryService {
         if (decreasedCount == 0) {
             throw new CoreException(ErrorType.BAD_REQUEST, "재고가 부족합니다.");
         }
+
+        inventoryGlobalV1EventPublisher.publish(InventoryGlobalEvent.StockChanged.from(
+            inventoryModel.getRefProductSkuId(),
+            inventoryModel.getQuantity().getQuantity() - command.quantity()
+        ));
     }
 
     @Transactional

@@ -11,6 +11,8 @@ import com.loopers.interfaces.api.product.ProductV1Dto.SearchProductSummaryRespo
 import com.loopers.support.pagenation.PageResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -31,9 +33,11 @@ public class ProductV1ApiController implements ProductV1ApiSpec{
 
     @GetMapping("/{productId}")
     @Override
-    public ApiResponse<GetResponse> getProductDetail(Long productId) {
+    public ApiResponse<GetResponse> getProductDetail(
+        @RequestHeader("X-USER-ID") Long userId,
+        @PathVariable Long productId) {
         ProductResult productDetail = productFacade.getProductDetail(
-            new GetProduct(productId)
+            new GetProduct(productId, userId)
         );
         return ApiResponse.success(ProductV1Dto.GetResponse.from(productDetail));
     }
