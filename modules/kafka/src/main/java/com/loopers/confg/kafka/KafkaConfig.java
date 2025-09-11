@@ -2,6 +2,7 @@ package com.loopers.confg.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -47,7 +48,8 @@ public class KafkaConfig {
     }
 
     @Bean
-    public ByteArrayJsonMessageConverter jsonMessageConverter(ObjectMapper objectMapper) {
+    public ByteArrayJsonMessageConverter jsonMessageConverter(ObjectProvider<ObjectMapper> objectMapperProvider) {
+        ObjectMapper objectMapper = objectMapperProvider.getIfAvailable(ObjectMapper::new);
         return new ByteArrayJsonMessageConverter(objectMapper);
     }
 

@@ -5,6 +5,7 @@ import com.loopers.confg.kafka.KafkaConfig;
 import com.loopers.domain.auditLog.dto.AuditLogCommand;
 import com.loopers.domain.auditLog.service.AuditLogService;
 import com.loopers.interfaces.event.OrderEvent;
+import com.loopers.interfaces.event.ProductEvent.StockChanged;
 import com.loopers.interfaces.event.UserSignal;
 import com.loopers.message.Message;
 import jakarta.annotation.PostConstruct;
@@ -16,6 +17,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -65,26 +69,24 @@ public class AuditKafkaConsumer {
         containerFactory = KafkaConfig.BATCH_LISTENER,
         groupId = "${kafka.consumers.groups.audit-log}"
     )
-    public void handleAllAuditEvents(List<ConsumerRecord<String, byte[]>> messages, Acknowledgment acknowledgment)
-        throws IOException {
+    public void handleAllAuditEvents(
+        @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
+        @Header(KafkaHeaders.PARTITION) String partition,
+        @Payload List<Message<?>> messages,  // 제네릭 타입으로 메시지 디코딩
+        Acknowledgment acknowledgment){
 
-        for (ConsumerRecord<String, byte[]> message : messages) {
-            String topic = message.topic();
+        for (Message<?> message : messages) {
             log.debug("메시지 수신: 토픽={}", topic);
-
             try {
-                // 제네릭 타입으로 메시지 디코딩
-                Message<?> event = objectMapper.readValue(message.value(), Message.class);
-
                 auditLogService.save(new AuditLogCommand.Create(
-                    event.messageId(),
+                    message.messageId(),
                     topicToPayloadTypeMap.getOrDefault(topic, "UnknownEventClass"),
-                    message.topic(),
+                    topic,
                     CONSUMER_GROUP_AUDIT_LOG,
-                    String.valueOf(message.partition()),
-                    event.payload().toString(),
-                    event.publishedAt(),
-                    event.version()
+                    String.valueOf(partition),
+                    message.payload().toString(),
+                    message.publishedAt(),
+                    message.version()
                 ));
             } catch (Exception e) {
                 log.error("메시지 처리 중 오류 발생: 토픽={}, 오류={}", topic, e.getMessage(), e);
