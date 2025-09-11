@@ -1,6 +1,6 @@
 package com.loopers.infrastructure.ranking;
 
-import com.loopers.domain.ranking.contant.ProductRankingWeight;
+import com.loopers.domain.ranking.enums.ProductRankingWeight;
 import com.loopers.domain.ranking.repository.RankingRepository;
 import java.time.Duration;
 import java.time.ZonedDateTime;

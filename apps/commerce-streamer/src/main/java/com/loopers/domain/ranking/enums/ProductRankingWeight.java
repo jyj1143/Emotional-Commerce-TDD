@@ -1,4 +1,4 @@
-package com.loopers.domain.ranking.contant;
+package com.loopers.domain.ranking.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
