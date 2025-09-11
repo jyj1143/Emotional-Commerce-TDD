@@ -21,6 +21,8 @@ public interface ProductV1ApiSpec {
         summary = "상품 상세 조회"
     )
     ApiResponse<GetResponse> getProductDetail(
+        @Schema(name = "회원 ID")
+        Long userId,
         @Schema(name = "상품 ID")
         Long productId
     );

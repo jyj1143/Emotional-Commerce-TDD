@@ -18,7 +18,7 @@ public record ProductCriteria (
         }
     }
 
-    public record GetProduct(Long productId) {
+    public record GetProduct(Long productId, Long userId) {
 
         public ProductCommand.GetProduct toProductCommand() {
             return new ProductCommand.GetProduct(productId);
