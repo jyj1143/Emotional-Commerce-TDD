@@ -4,9 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.loopers.confg.kafka.KafkaConfig;
 import com.loopers.domain.auditLog.dto.AuditLogCommand;
 import com.loopers.domain.auditLog.service.AuditLogService;
-import com.loopers.interfaces.event.OrderEvent;
-import com.loopers.interfaces.event.ProductEvent.StockChanged;
-import com.loopers.interfaces.event.UserSignal;
+import com.loopers.interfaces.consumer.event.OrderEvent;
+import com.loopers.interfaces.consumer.event.UserSignal;
 import com.loopers.message.Message;
 import jakarta.annotation.PostConstruct;
 import java.util.HashMap;
@@ -14,7 +13,6 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -22,7 +20,6 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.util.List;
 
 @Slf4j

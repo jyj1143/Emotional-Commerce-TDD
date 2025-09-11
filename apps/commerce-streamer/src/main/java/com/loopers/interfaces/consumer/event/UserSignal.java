@@ -1,4 +1,4 @@
-package com.loopers.interfaces.event;
+package com.loopers.interfaces.consumer.event;
 
 import java.time.ZonedDateTime;
 

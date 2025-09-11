@@ -1,6 +1,5 @@
 package com.loopers.interfaces.consumer.productMetrics;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.loopers.confg.kafka.KafkaConfig;
 import com.loopers.domain.handledEvent.dto.HandledEventCommand;
@@ -8,20 +7,16 @@ import com.loopers.domain.handledEvent.service.HandledEventService;
 import com.loopers.domain.product.ProductCacheService;
 import com.loopers.domain.productMetrics.dto.ProductMetricsCommand;
 import com.loopers.domain.productMetrics.service.ProductMetricsService;
-import com.loopers.interfaces.event.OrderEvent;
-import com.loopers.interfaces.event.UserSignal.Liked;
-import com.loopers.interfaces.event.UserSignal.UnLiked;
-import com.loopers.interfaces.event.UserSignal.Viewed;
+import com.loopers.interfaces.consumer.event.OrderEvent;
+import com.loopers.interfaces.consumer.event.UserSignal.Liked;
+import com.loopers.interfaces.consumer.event.UserSignal.UnLiked;
+import com.loopers.interfaces.consumer.event.UserSignal.Viewed;
 import com.loopers.message.Message;
-import java.io.IOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
-import org.springframework.kafka.support.KafkaHeaders;
-import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 

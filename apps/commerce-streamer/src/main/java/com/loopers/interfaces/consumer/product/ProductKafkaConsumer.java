@@ -1,16 +1,13 @@
 package com.loopers.interfaces.consumer.product;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.loopers.confg.kafka.KafkaConfig;
 import com.loopers.domain.product.ProductCacheService;
-import com.loopers.interfaces.event.ProductEvent.StockChanged;
-import com.loopers.interfaces.event.UserSignal.Liked;
+import com.loopers.interfaces.consumer.event.ProductEvent.StockChanged;
 import com.loopers.message.Message;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.messaging.handler.annotation.Payload;
