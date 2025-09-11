@@ -21,19 +21,19 @@ public class RankingService {
 
     public void scoreLike(List<RankingCommand.Like> commands) {
         for (RankingCommand.Like command : commands) {
-            rankingRepository.scoreView(command.productId());
+            rankingRepository.scoreLike(command.productId());
         }
     }
 
     public void scoreUnLike(List<RankingCommand.UnLike> commands) {
         for (RankingCommand.UnLike command : commands) {
-            rankingRepository.scoreView(command.productId());
+            rankingRepository.scoreUnLike(command.productId());
         }
     }
 
     public void scoreOrder(List<RankingCommand.Order> commands) {
         for (RankingCommand.Order command : commands) {
-            rankingRepository.scoreView(command.productId());
+            rankingRepository.scoreOrder(command.productId());
         }
     }
 
