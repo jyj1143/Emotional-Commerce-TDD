@@ -6,8 +6,15 @@ import com.loopers.domain.handledEvent.dto.HandledEventCommand;
 import com.loopers.domain.handledEvent.service.HandledEventService;
 import com.loopers.domain.product.ProductCacheService;
 import com.loopers.domain.productMetrics.dto.ProductMetricsCommand;
+import com.loopers.domain.productMetrics.dto.ProductMetricsEvent;
+import com.loopers.domain.productMetrics.dto.ProductMetricsEvent.LikeList.Like;
+import com.loopers.domain.productMetrics.dto.ProductMetricsEvent.OrderList.Order;
+import com.loopers.domain.productMetrics.dto.ProductMetricsEvent.UnLikeList.UnLike;
+import com.loopers.domain.productMetrics.dto.ProductMetricsEvent.ViewList.View;
+import com.loopers.domain.productMetrics.service.ProductMetricsEventPublisher;
 import com.loopers.domain.productMetrics.service.ProductMetricsService;
 import com.loopers.interfaces.consumer.event.OrderEvent;
+import com.loopers.interfaces.consumer.event.OrderEvent.Order.OrderItem;
 import com.loopers.interfaces.consumer.event.UserSignal.Liked;
 import com.loopers.interfaces.consumer.event.UserSignal.UnLiked;
 import com.loopers.interfaces.consumer.event.UserSignal.Viewed;
@@ -27,7 +34,7 @@ public class ProductMetricsKafkaConsumer {
     private final HandledEventService handledEventService;
     private final ProductMetricsService productMetricsService;
     private final ProductCacheService productCacheService;
-    private final ObjectMapper objectMapper;
+    private final ProductMetricsEventPublisher productMetricsEventPublisher;
 
     @Value("${kafka.consumers.groups.product-metrics}")
     private String CONSUMER_GROUP_METRICS;
@@ -61,6 +68,16 @@ public class ProductMetricsKafkaConsumer {
             // 상품의 캐시를 무효화합니다.
             productCacheService.invalidateCacheForZeroStock(message.payload().productId());
         }
+
+
+        productMetricsEventPublisher.publish(
+            new ProductMetricsEvent.LikeList(
+                messages.stream().map(Message::payload).map(
+                        item ->
+                             Like.of(item.productId()))
+                    .toList()
+            )
+        );
         acknowledgment.acknowledge();
     }
 
@@ -92,6 +109,15 @@ public class ProductMetricsKafkaConsumer {
             // 상품의 캐시를 무효화합니다.
             productCacheService.invalidateCacheForZeroStock(message.payload().productId());
         }
+
+        productMetricsEventPublisher.publish(
+            new ProductMetricsEvent.UnLikeList(
+                messages.stream().map(Message::payload).map(
+                        item ->
+                             UnLike.of(item.productId()))
+                    .toList()
+            )
+        );
         acknowledgment.acknowledge();
     }
 
@@ -120,6 +146,15 @@ public class ProductMetricsKafkaConsumer {
                 new ProductMetricsCommand.IncreaseProductViewedCount(message.payload().productId()));
 
         }
+
+        productMetricsEventPublisher.publish(
+            new ProductMetricsEvent.ViewList(
+                messages.stream().map(Message::payload).map(
+                        item ->
+                            View.of(item.productId()))
+                    .toList()
+            )
+        );
         acknowledgment.acknowledge();
     }
 
@@ -150,6 +185,17 @@ public class ProductMetricsKafkaConsumer {
                     new ProductMetricsCommand.IncreaseOrderPaymentCount(item.productId()));
             });
         }
+
+        productMetricsEventPublisher.publish(
+            new ProductMetricsEvent.OrderList(
+                messages.stream()
+                    .map(Message::payload)
+                    .flatMap(order -> order.items().stream())
+                    .map(OrderItem::productId)
+                    .map(ProductMetricsEvent.OrderList.Order::of)
+                    .toList()
+            )
+        );
         acknowledgment.acknowledge();
     }
 
