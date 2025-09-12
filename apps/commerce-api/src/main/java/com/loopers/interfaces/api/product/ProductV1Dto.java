@@ -85,7 +85,8 @@ public class ProductV1Dto {
         String status,
         Long brandId,
         String brandName,
-        Long likeCount
+        Long likeCount,
+        Long rank
     ) {
         public static GetResponse from(ProductResult result) {
             return new GetResponse(
@@ -95,7 +96,8 @@ public class ProductV1Dto {
                 result.status(),
                 result.brandId(),
                 result.brandName(),
-                result.likeCount()
+                result.likeCount(),
+                result.rank()
             );
         }
     }

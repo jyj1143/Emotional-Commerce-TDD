@@ -15,7 +15,12 @@ import com.loopers.domain.product.entity.ProductModel;
 import com.loopers.domain.product.service.ProductService;
 import com.loopers.domain.product.service.ProductSummaryService;
 import com.loopers.application.product.dto.ProductInfo;
+import com.loopers.domain.ranking.RankingService;
+import com.loopers.domain.ranking.dto.RankingCommand;
+import com.loopers.domain.ranking.dto.RankingCommand.GetRank;
+import com.loopers.domain.ranking.dto.RankingInfo;
 import com.loopers.support.pagenation.PageResult;
+import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +34,7 @@ public class ProductFacade {
     private final BrandService brandService;
     private final LikeService likeService;
     private final ProductCacheRepository productCacheRepository;
+    private final RankingService rankingService;
 
     /**
      * 상품 상세 조회
@@ -49,8 +55,9 @@ public class ProductFacade {
 
                 return productInfo;
             });
+        RankingInfo productRanking = rankingService.getProductRanking(new GetRank(criteria.productId(), LocalDate.now()));
 
-        return ProductResult.of(productDetails);
+        return ProductResult.of(productDetails, productRanking.rank());
     }
 
     /**

@@ -58,4 +58,9 @@ public class RankingService {
     }
 
 
+    public RankingInfo getProductRanking(RankingCommand.GetRank command) {
+        Long rank = rankingRepository.getRankOfProduct(command.productId(), command.date());
+        return new RankingInfo(command.productId(), rank);
+    }
+
 }

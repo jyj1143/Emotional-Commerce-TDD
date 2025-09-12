@@ -7,7 +7,8 @@ public record ProductResult(
     String status,
     Long brandId,
     String brandName,
-    Long likeCount
+    Long likeCount,
+    Long rank
 ) {
 
     public static ProductResult of(
@@ -20,7 +21,23 @@ public record ProductResult(
             productInfo.status(),
             productInfo.brandId(),
             productInfo.brandName(),
-            productInfo.likeCount()
+            productInfo.likeCount(),
+            null
+        );
+    }
+    public static ProductResult of(
+        final ProductInfo productInfo,
+        final Long rank
+    ) {
+        return new ProductResult(
+            productInfo.id(),
+            productInfo.name(),
+            productInfo.price(),
+            productInfo.status(),
+            productInfo.brandId(),
+            productInfo.brandName(),
+            productInfo.likeCount(),
+            rank
         );
     }
 }

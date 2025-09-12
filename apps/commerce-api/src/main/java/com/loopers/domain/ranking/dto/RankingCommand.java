@@ -9,4 +9,10 @@ public class RankingCommand {
         LocalDate date
     ) {
     }
+
+    public record GetRank(
+        Long productId,
+        LocalDate date
+    ) {
+    }
 }
