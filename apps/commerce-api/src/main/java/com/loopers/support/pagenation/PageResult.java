@@ -1,7 +1,8 @@
 package com.loopers.support.pagenation;
 
 import java.util.List;
-import lombok.Getter;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 
 
@@ -33,5 +34,16 @@ public record PageResult<T>(
         Boolean hasNextPage,
         Boolean hasPreviousPage
     ) {
+    }
+
+    /**
+     * 페이지 결과 타입 변환 (content만 변환)
+     */
+    public <R> PageResult<R> map(Function<? super T, ? extends R> mapper) {
+        List<R> mappedContent = this.content.stream()
+            .map(mapper)
+            .collect(Collectors.toList());
+
+        return new PageResult<>(mappedContent, this.paginationInfo);
     }
 }

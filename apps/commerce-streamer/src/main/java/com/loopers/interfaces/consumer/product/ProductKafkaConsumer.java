@@ -1,17 +1,16 @@
 package com.loopers.interfaces.consumer.product;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.loopers.confg.kafka.KafkaConfig;
 import com.loopers.domain.product.ProductCacheService;
-import com.loopers.interfaces.event.ProductEvent.StockChanged;
+import com.loopers.interfaces.consumer.event.ProductEvent.StockChanged;
 import com.loopers.message.Message;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -31,16 +30,14 @@ public class ProductKafkaConsumer {
         groupId = "${kafka.consumers.groups.product}"
     )
     public void handleProductStockChanged(
-        List<ConsumerRecord<String, byte[]>> messages,
+        @Payload List<Message<StockChanged>> messages,
         Acknowledgment acknowledgment
     ) {
         try {
-            for (ConsumerRecord<String, byte[]> message : messages) {
-                Message<StockChanged> event = objectMapper.readValue(message.value(), new TypeReference<>() {
-                });
+            for (Message<StockChanged> message : messages) {
 
-                if (event.payload().quantity() == 0) {
-                    Long productSkuId = event.payload().productSkuId();
+                if (message.payload().quantity() == 0) {
+                    Long productSkuId = message.payload().productSkuId();
                     productCacheService.invalidateCacheForZeroStock(productSkuId);
                 }
             }

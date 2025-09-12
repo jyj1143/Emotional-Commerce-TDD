@@ -3,6 +3,7 @@ package com.loopers.application.product;
 import com.loopers.application.product.dto.ProductCriteria;
 import com.loopers.application.product.dto.ProductResult;
 import com.loopers.application.product.dto.ProductSummaryResult;
+import com.loopers.domain.brand.dto.BrandInfo;
 import com.loopers.domain.brand.entity.BrandModel;
 import com.loopers.domain.brand.service.BrandService;
 import com.loopers.domain.like.enums.LikeType;
@@ -37,8 +38,9 @@ public class ProductFacade {
     public ProductResult getProductDetail(ProductCriteria.GetProduct criteria) {
         ProductInfo productDetails = productCacheRepository.findProductDetail(criteria.productId())
             .orElseGet(() -> {
-                ProductModel product = productService.get(criteria.productId(), criteria.userId());
-                BrandModel brand = brandService.get(product.getRefBrandId());
+                com.loopers.domain.product.dto.product.ProductInfo product = productService.get(criteria.productId(),
+                    criteria.userId());
+                BrandInfo brand = brandService.get(product.brandId());
                 Long likeCount = likeService.count(criteria.productId(), LikeType.PRODUCT);
 
                 ProductInfo productInfo = ProductInfo.of(product, brand, likeCount);

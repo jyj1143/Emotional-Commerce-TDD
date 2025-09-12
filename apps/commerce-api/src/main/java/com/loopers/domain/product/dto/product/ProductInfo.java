@@ -7,14 +7,16 @@ public record ProductInfo (
     Long id,
     String name,
     Long price,
-    SaleStatus saleStatus
+    SaleStatus saleStatus,
+    Long brandId
 ){
     public static ProductInfo from(ProductModel product) {
         return new ProductInfo(
             product.getId(),
             product.getName().getName(),
             product.getSalePrice().getAmount(),
-            product.getSaleStatus()
+            product.getSaleStatus(),
+            product.getRefBrandId()
         );
     }
 }

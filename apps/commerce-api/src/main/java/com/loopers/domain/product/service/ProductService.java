@@ -39,13 +39,19 @@ public class ProductService {
         return productRepository.findProductWithBrand();
     }
 
-    public ProductModel get(Long productId, Long userId) {
+    public ProductInfo get(Long productId, Long userId) {
 
         ProductModel productModel = productRepository.find(productId)
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "해당 상품을 찾을 수 없습니다. id: " + productId));
         productGlobalV1EventPublisher.publish(ProductGlobalEvent.Viewed.from(productId, userId));
 
-        return productModel;
+        return ProductInfo.from(productModel);
+    }
+
+    public ProductInfo get(Long productId) {
+        ProductModel productModel = productRepository.find(productId)
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "해당 상품을 찾을 수 없습니다. id: " + productId));
+        return ProductInfo.from(productModel);
     }
 
 }
