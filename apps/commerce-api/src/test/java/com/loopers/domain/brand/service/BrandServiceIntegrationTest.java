@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.loopers.domain.brand.dto.BrandInfo;
 import com.loopers.domain.brand.entity.BrandModel;
 import com.loopers.domain.brand.repository.BrandRepository;
 import com.loopers.domain.product.entity.ProductFixture;
@@ -54,12 +55,12 @@ class BrandServiceIntegrationTest {
             BrandModel brandModel = brandRepository.save(BrandModel.of(brandName));
             Long id = brandModel.getId();
             // when
-            BrandModel findBrand = brandService.get(id);
+            BrandInfo findBrand = brandService.get(id);
             // then
             assertAll(
                 () -> assertThat(findBrand).isNotNull(),
-                () -> assertThat(findBrand.getName().getName()).isEqualTo(brandName),
-                () -> assertThat(findBrand.getId()).isEqualTo(id)
+                () -> assertThat(findBrand.name()).isEqualTo(brandName),
+                () -> assertThat(findBrand.id()).isEqualTo(id)
             );
         }
 

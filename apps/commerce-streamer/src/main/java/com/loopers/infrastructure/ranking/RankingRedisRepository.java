@@ -14,7 +14,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
-public class RankingBoardRedisRepository implements RankingRepository {
+public class RankingRedisRepository implements RankingRepository {
 
     private final StringRedisTemplate redisTemplate;
     private static final String DATE_FORMAT_PATTERN = "yyyyMMdd";
@@ -26,7 +26,7 @@ public class RankingBoardRedisRepository implements RankingRepository {
      * 현재 날짜 기반 Redis 키를 생성
      */
     private String generateRedisKey() {
-        return PRODUCT_SCORE_KEY_PREFIX + ZonedDateTime.now().format(FORMATTER);
+        return PRODUCT_SCORE_KEY_PREFIX.replace("{date}", ZonedDateTime.now().format(FORMATTER));
     }
 
     /**
