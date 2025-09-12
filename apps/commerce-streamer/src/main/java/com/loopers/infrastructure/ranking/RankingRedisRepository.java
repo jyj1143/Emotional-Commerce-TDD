@@ -54,7 +54,7 @@ public class RankingRedisRepository implements RankingRepository {
     }
 
     /**
-     * 오늘의 랭킹 점수를 일부(1%) 내일 랭킹에 이월
+     * 오늘의 랭킹 점수를 일부(10%) 내일 랭킹에 이월
      * - 오늘 점수는 점차 소멸되고, 내일 랭킹에 누적 반영
      * - 내일 랭킹 키는 2일 동안만 유지
      */
@@ -62,14 +62,14 @@ public class RankingRedisRepository implements RankingRepository {
         String todayKey = PRODUCT_SCORE_KEY_PREFIX + ZonedDateTime.now().format(FORMATTER);
         String tomorrowKey = PRODUCT_SCORE_KEY_PREFIX + ZonedDateTime.now().plusDays(1).format(FORMATTER);
 
-        // 오늘 랭킹 점수를 내일 랭킹으로 이월 (0.01 가중치 적용)
+        // 오늘 랭킹 점수를 내일 랭킹으로 이월 (0.1 가중치 적용)
         redisTemplate.opsForZSet()
             .unionAndStore(
                 todayKey,
                 Collections.emptyList(),
                 tomorrowKey,
                 Aggregate.SUM,
-                Weights.of(0.01)
+                Weights.of(0.1)
             );
 
         // 만료 시간 설정
