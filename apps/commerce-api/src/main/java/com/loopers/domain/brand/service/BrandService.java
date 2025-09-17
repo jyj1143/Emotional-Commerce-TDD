@@ -1,5 +1,6 @@
 package com.loopers.domain.brand.service;
 
+import com.loopers.domain.brand.dto.BrandInfo;
 import com.loopers.domain.brand.entity.BrandModel;
 import com.loopers.domain.brand.repository.BrandRepository;
 import com.loopers.support.error.CoreException;
@@ -15,9 +16,11 @@ public class BrandService {
 
     private final BrandRepository brandRepository;
 
-    public BrandModel get(Long id) {
-        return brandRepository.find(id).orElseThrow(
+    public BrandInfo get(Long id) {
+        BrandModel brandModel = brandRepository.find(id).orElseThrow(
             () -> new CoreException(ErrorType.NOT_FOUND, "브랜드를 찾을 수 없습니다."));
+
+        return BrandInfo.from(brandModel);
     }
 
     @Transactional

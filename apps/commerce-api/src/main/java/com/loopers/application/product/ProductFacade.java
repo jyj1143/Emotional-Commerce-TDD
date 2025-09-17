@@ -3,6 +3,7 @@ package com.loopers.application.product;
 import com.loopers.application.product.dto.ProductCriteria;
 import com.loopers.application.product.dto.ProductResult;
 import com.loopers.application.product.dto.ProductSummaryResult;
+import com.loopers.domain.brand.dto.BrandInfo;
 import com.loopers.domain.brand.entity.BrandModel;
 import com.loopers.domain.brand.service.BrandService;
 import com.loopers.domain.like.enums.LikeType;
@@ -14,7 +15,12 @@ import com.loopers.domain.product.entity.ProductModel;
 import com.loopers.domain.product.service.ProductService;
 import com.loopers.domain.product.service.ProductSummaryService;
 import com.loopers.application.product.dto.ProductInfo;
+import com.loopers.domain.ranking.RankingService;
+import com.loopers.domain.ranking.dto.RankingCommand;
+import com.loopers.domain.ranking.dto.RankingCommand.GetRank;
+import com.loopers.domain.ranking.dto.RankingInfo;
 import com.loopers.support.pagenation.PageResult;
+import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +34,7 @@ public class ProductFacade {
     private final BrandService brandService;
     private final LikeService likeService;
     private final ProductCacheRepository productCacheRepository;
+    private final RankingService rankingService;
 
     /**
      * 상품 상세 조회
@@ -37,8 +44,9 @@ public class ProductFacade {
     public ProductResult getProductDetail(ProductCriteria.GetProduct criteria) {
         ProductInfo productDetails = productCacheRepository.findProductDetail(criteria.productId())
             .orElseGet(() -> {
-                ProductModel product = productService.get(criteria.productId(), criteria.userId());
-                BrandModel brand = brandService.get(product.getRefBrandId());
+                com.loopers.domain.product.dto.product.ProductInfo product = productService.get(criteria.productId(),
+                    criteria.userId());
+                BrandInfo brand = brandService.get(product.brandId());
                 Long likeCount = likeService.count(criteria.productId(), LikeType.PRODUCT);
 
                 ProductInfo productInfo = ProductInfo.of(product, brand, likeCount);
@@ -47,8 +55,9 @@ public class ProductFacade {
 
                 return productInfo;
             });
+        RankingInfo productRanking = rankingService.getProductRanking(new GetRank(criteria.productId(), LocalDate.now()));
 
-        return ProductResult.of(productDetails);
+        return ProductResult.of(productDetails, productRanking.rank());
     }
 
     /**
