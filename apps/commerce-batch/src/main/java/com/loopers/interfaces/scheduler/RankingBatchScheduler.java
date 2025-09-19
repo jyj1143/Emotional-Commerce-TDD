@@ -32,7 +32,7 @@ public class RankingBatchScheduler {
      * 매주 월요일 새벽 1시 실행
      */
     @Scheduled(cron = "0 0 1 * * MON", zone = "Asia/Seoul")
-    public void runWeeklyRankingJob() {
+    public void executeWeeklyRankingJob() {
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
         LocalDate lastWeekStart = today.minusWeeks(1).with(DayOfWeek.MONDAY);
         LocalDate lastWeekEnd = today.minusWeeks(1).with(DayOfWeek.SUNDAY);
@@ -60,7 +60,7 @@ public class RankingBatchScheduler {
      * 매달 1일 새벽 1시 실행
      */
     @Scheduled(cron = "0 0 1 1 * *", zone = "Asia/Seoul")
-    public void runMonthlyRankingJob() {
+    public void executeMonthlyRankingJob() {
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
         LocalDate aggregateDate = today;
 
