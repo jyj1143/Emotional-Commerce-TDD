@@ -10,6 +10,18 @@ public class RankingCommand {
     ) {
     }
 
+    public record SearchWeekly(
+            Pageable pageable,
+            String yearWeek
+    ) {
+    }
+
+    public record SearchMonthly(
+            Pageable pageable,
+            String yearMonth
+    ) {
+    }
+
     public record GetRank(
         Long productId,
         LocalDate date
