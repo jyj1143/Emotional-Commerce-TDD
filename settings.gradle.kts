@@ -3,6 +3,7 @@ rootProject.name = "loopers-java-spring-template"
 include(
     ":apps:commerce-api",
     ":apps:commerce-streamer",
+    ":apps:commerce-batch",
     ":apps:pg-simulator",
     ":modules:jpa",
     ":modules:redis",
@@ -32,5 +33,3 @@ pluginManagement {
         }
     }
 }
-
-include("apps:commerce-streamer")

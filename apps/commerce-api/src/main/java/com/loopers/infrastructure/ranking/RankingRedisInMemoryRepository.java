@@ -1,9 +1,8 @@
 package com.loopers.infrastructure.ranking;
 
-import com.loopers.domain.ranking.RankingRepository;
+import com.loopers.domain.ranking.repository.RankingInMemoryRepository;
 import com.loopers.support.pagenation.Pageable;
 import java.time.LocalDate;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +15,7 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 @RequiredArgsConstructor
-public class RankingRedisRepository implements RankingRepository {
+public class RankingRedisInMemoryRepository implements RankingInMemoryRepository {
     private final StringRedisTemplate redisTemplate;
     private static final String DATE_FORMAT_PATTERN = "yyyyMMdd";
 
