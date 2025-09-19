@@ -46,4 +46,20 @@ public record PageResult<T>(
 
         return new PageResult<>(mappedContent, this.paginationInfo);
     }
+
+    /**
+     * 빈 페이지 결과 생성
+     */
+    public static <T> PageResult<T> empty() {
+        PaginationInfo emptyPagination = new PaginationInfo(
+                1,       // currentPage
+                1,       // totalPage
+                0,       // pageSize
+                0L,      // totalCount
+                false,   // hasNextPage
+                false    // hasPreviousPage
+        );
+        return new PageResult<>(List.of(), emptyPagination);
+    }
+
 }

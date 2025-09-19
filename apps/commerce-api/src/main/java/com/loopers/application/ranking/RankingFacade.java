@@ -6,7 +6,7 @@ import com.loopers.domain.brand.dto.BrandInfo;
 import com.loopers.domain.brand.service.BrandService;
 import com.loopers.domain.product.dto.product.ProductInfo;
 import com.loopers.domain.product.service.ProductService;
-import com.loopers.domain.ranking.RankingService;
+import com.loopers.domain.ranking.service.RankingService;
 import com.loopers.domain.ranking.dto.RankingInfo;
 import com.loopers.support.pagenation.PageResult;
 import lombok.RequiredArgsConstructor;
@@ -21,20 +21,25 @@ public class RankingFacade {
     private final BrandService brandService;
 
     public PageResult<RankingResult> searchRankings(RankingCriteria.SearchRankings criteria) {
+        PageResult<RankingInfo> productRanking = PageResult.empty();
 
-        PageResult<RankingInfo> productRanking = rankingService.getProductRanking(criteria.toCommand());
+        switch (criteria.rankingPeriod()) {
+            case DAILY -> productRanking = rankingService.getProductRanking(criteria.toDailCommand());
+            case WEEKLY -> productRanking = rankingService.getProductWeeklyRanking(criteria.toWeeklyCommand());
+            case MONTHLY -> productRanking = rankingService.getProductMonthlyRanking(criteria.toMonthlyCommand());
+        }
 
         return productRanking.map(ranking -> {
             ProductInfo product = productService.get(ranking.productId());
             BrandInfo brand = brandService.get(product.brandId());
             return new RankingResult(
-                product.id(),
-                product.name(),
-                product.price(),
-                product.saleStatus().name(),
-                brand.id(),
-                brand.name(),
-                ranking.rank()
+                    product.id(),
+                    product.name(),
+                    product.price(),
+                    product.saleStatus().name(),
+                    brand.id(),
+                    brand.name(),
+                    ranking.rank()
             );
         });
     }
